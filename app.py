@@ -6,8 +6,9 @@ from flask import Flask, jsonify, request, render_template
 app = Flask(__name__)
 
 APP_NAME = "EVisionary"
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_PATH = os.path.join(BASE_DIR, "data", "/Users/sogand/unified_EVmetadata.parquet")
+DATA_PATH = os.path.join(BASE_DIR, "data", "unified_EVmetadata.parquet")
 
 con = duckdb.connect(database=':memory:')
 
@@ -17,12 +18,16 @@ def clean_text(val):
 
 def search_duckdb(query, limit=1000):
     try:
+        if not os.path.exists(DATA_PATH):
+            print(f"CRITICAL ERROR: File not found at {DATA_PATH}")
+            return []
+
         cols = ["working_id", "molecule_type", "species", "sample_name", "method", "vesicle", "disease", "year", "pmid", "source", "ev_metric", "characterization"]
-        safe_q = query.replace("'", "''")
         
-        where = " OR ".join([f"\"{c}\" ILIKE '%{safe_q}%'" for c in cols if c not in ['ev_metric']])
+        safe_q = query.replace("'", "''").lower()
         
-        # We order by year DESC to show the most recent and relevant publications first
+        where = " OR ".join([f"LOWER(\"{c}\") LIKE '%{safe_q}%'" for c in cols if c not in ['ev_metric']])
+        
         sql = f"SELECT * FROM '{DATA_PATH}' WHERE {where} ORDER BY year DESC NULLS LAST LIMIT {limit}"
         
         rows = con.execute(sql).fetchall()
@@ -40,7 +45,7 @@ def search_duckdb(query, limit=1000):
 
             output.append({
                 "name": clean_text(rd.get('working_id')),
-                "type": rd.get('molecule_type', 'Other'),
+                "type": clean_text(rd.get('molecule_type')),
                 "species": clean_text(rd.get('species')),
                 "sample": clean_text(rd.get('sample_name')),
                 "method": clean_text(rd.get('method')),
