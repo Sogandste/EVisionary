@@ -15,19 +15,29 @@ def clean_text(val):
     if pd.isna(val) or str(val).lower() in ["none", "nan", "null", "", "n/a", "unknown"]: return "Unknown"
     return " ".join(str(val).replace("_", " ").split())
 
-def search_duckdb(query, limit=200):
+ddef search_duckdb(query, limit=1000):
     try:
         cols = ["working_id", "molecule_type", "species", "sample_name", "method", "vesicle", "disease", "year", "pmid", "source", "ev_metric", "characterization"]
         safe_q = query.replace("'", "''")
-        where = " OR ".join([f"\"{c}\" ILIKE '%{safe_q}%'" for c in cols if c != 'pmid' and c != 'ev_metric'])
         
-        sql = f"SELECT * FROM '{DATA_PATH}' WHERE {where} LIMIT {limit}"
+        where = " OR ".join([f"\"{c}\" ILIKE '%{safe_q}%'" for c in cols if c not in ['ev_metric']])
+        
+        # We order by year DESC to show the most recent and relevant publications first
+        sql = f"SELECT * FROM '{DATA_PATH}' WHERE {where} ORDER BY year DESC NULLS LAST LIMIT {limit}"
+        
         rows = con.execute(sql).fetchall()
         db_cols = [d[0] for d in con.description]
         
         output = []
         for r in rows:
             rd = dict(zip(db_cols, r))
+            
+            raw_pmid = rd.get('pmid', 'Unknown')
+            if pd.isna(raw_pmid) or str(raw_pmid).lower() in ['nan', 'none', 'unknown', '']:
+                final_pmid = "Unknown"
+            else:
+                final_pmid = str(raw_pmid).replace('.0', '').strip()
+
             output.append({
                 "name": clean_text(rd.get('working_id')),
                 "type": rd.get('molecule_type', 'Other'),
@@ -39,7 +49,7 @@ def search_duckdb(query, limit=200):
                 "characterization": clean_text(rd.get('characterization', 'Not Reported')),
                 "ev_metric": clean_text(rd.get('ev_metric', 'Legacy')),
                 "year": str(rd.get('year')).replace('.0', '') if rd.get('year') else "Unknown",
-                "pmid": str(int(rd.get('pmid'))) if rd.get('pmid') and not pd.isna(rd.get('pmid')) else "Unknown",
+                "pmid": final_pmid,
                 "source": clean_text(rd.get('source'))
             })
         return output
