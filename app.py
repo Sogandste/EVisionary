@@ -15,7 +15,7 @@ def clean_text(val):
     if pd.isna(val) or str(val).lower() in ["none", "nan", "null", "", "n/a", "unknown"]: return "Unknown"
     return " ".join(str(val).replace("_", " ").split())
 
-ddef search_duckdb(query, limit=1000):
+def search_duckdb(query, limit=1000):
     try:
         cols = ["working_id", "molecule_type", "species", "sample_name", "method", "vesicle", "disease", "year", "pmid", "source", "ev_metric", "characterization"]
         safe_q = query.replace("'", "''")
