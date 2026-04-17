@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 APP_NAME = "EVisionary"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_PATH = os.path.join(BASE_DIR, "data", "/Users/sogand/unified_EVmetadata.parquet")
+DATA_PATH = os.path.join(BASE_DIR, "data", "/Users/sogand/projects/EV-databases/api/data/unified_EVmetadata.parquet")
 
 con = duckdb.connect(database=':memory:')
 
