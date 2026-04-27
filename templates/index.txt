@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_name }} | Quality-Controlled Harmonization</title>
+    <link href="https://fonts.googleapis.com/css2?family=Arial:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root { --navy: #1f4e79; --green: #228B22; --gray: #E0E0E0; --gold: #FFD700; --text: #333333; --bg: #f5f7fa; }
+        body { font-family: 'Arial', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; }
+        
+        /* THE GOLDEN EV SUN */
+        .hero { background: var(--navy); color: white; padding: 45px 20px 55px; text-align: center; border-bottom: 5px solid var(--green); }
+        .logo-ring { 
+            width: 75px; height: 75px; 
+            background: radial-gradient(circle, rgba(255,215,0,0.9) 0%, rgba(255,215,0,0.1) 70%);
+            border: 2px solid var(--gold); border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; 
+            font-size: 32px; color: #fff; text-shadow: 0 0 5px rgba(0,0,0,0.3);
+            animation: sun-glow 3s infinite alternate;
+        }
+        @keyframes sun-glow { 
+            0% { box-shadow: 0 0 15px rgba(255,215,0,0.4), inset 0 0 10px rgba(255,215,0,0.4); transform: scale(0.98); } 
+            100% { box-shadow: 0 0 35px rgba(255,215,0,1), inset 0 0 20px rgba(255,215,0,0.8); transform: scale(1.05); } 
+        }
+        
+        h1 { font-weight: bold; font-size: 2.2rem; margin: 0; letter-spacing: 0.5px;}
+        .main-content { max-width: 1250px; margin: -25px auto 40px; padding: 0 20px; }
+        
+        /* SEARCH BAR UX */
+        .search-wrapper { background: white; padding: 12px; border-radius: 10px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); display: flex; border: 1px solid #ddd; position: relative; z-index: 2;}
+        input { flex: 1; border: none; padding: 12px 20px; font-size: 1.05rem; outline: none; }
+        .btn-go { background: var(--green); color: white; border: none; padding: 0 35px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 1rem;}
+        .btn-go:hover { background: #1b6e1b; box-shadow: 0 4px 10px rgba(34, 139, 34, 0.3);}
+        
+        /* LOADING & EMPTY STATES */
+        .state-container { display: none; text-align: center; padding: 60px 20px; background: white; border-radius: 10px; border: 1px dashed #ccc; margin-top: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);}
+        .loading-state i { color: var(--gold); font-size: 2.5rem; margin-bottom: 15px; animation: spin 1s linear infinite; }
+        .loading-state h3 { color: var(--navy); margin: 0;}
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .empty-state i { font-size: 3rem; color: #a0aab5; margin-bottom: 15px; }
+        .empty-state h3 { color: var(--navy); margin-bottom: 10px; }
+        .empty-state p { color: #666; font-size: 1rem; line-height: 1.5; }
+
+        /* DASHBOARD CHARTS */
+        .charts-row { display: none; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-top: 30px; }
+        .chart-box { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); height: 290px; border: 1px solid #eee; }
+        
+        /* UX OPTIMIZED TABLE */
+        .table-area { margin-top: 35px; display: none; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
+        
+        .table-header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .btn-export { background: var(--gold); color: var(--navy); border: none; padding: 10px 20px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4); transition: all 0.2s ease; display: flex; align-items: center; gap: 8px; }
+        .btn-export:hover { transform: translateY(-2px); filter: brightness(1.05); }
+
+        .table-scroll { background: white; border-radius: 10px; border: 1px solid #ddd; max-height: 550px; overflow-y: auto; overflow-x: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; text-align: left; table-layout: auto; }
+        
+        th { position: sticky; top: 0; background: #e8eaed; padding: 14px 12px; font-size: 0.85rem; color: var(--navy); font-weight: bold; border-bottom: 2px solid #ccc; z-index: 10; border-right: 1px solid #ddd;}
+        th.sortable { cursor: pointer; transition: background 0.2s; }
+        th.sortable:hover { background: #d0d0d0; }
+        th i { margin-left: 5px; color: #888; font-size: 0.8rem; }
+        
+        td { padding: 12px 12px; border-bottom: 1px solid #eee; font-size: 0.85rem; border-right: 1px solid #f5f5f5; line-height: 1.4; vertical-align: middle; }
+        td.italic-text { font-style: italic; }
+        tr:hover td { background-color: #f0f9ff; cursor: pointer; }
+        
+        /* Column Widths */
+        .col-type { width: 8%; }
+        .col-id { width: 10%; font-weight: bold; color: var(--navy); }
+        .col-species { width: 10%; }
+        .col-disease { width: 15%; }
+        .col-method { width: 18%; }
+        .col-qc { width: 13%; }
+        .col-metric { width: 8%; text-align: center; }
+        .col-year { width: 8%; text-align: center; font-weight: bold;}
+        .col-db { width: 10%; }
+
+        /* BADGES */
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; border: 1px solid #ccc; white-space: nowrap;}
+        .badge-meta { background: #f0f0f0; color: #666; border: 1px dashed #999; }
+        
+        .db-badge { font-weight: bold; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; background: #eee; white-space: nowrap;}
+        .db-evtrack { background: #e6f4ea; color: var(--green); border: 1px solid var(--green); }
+        .db-legacy { background: #e8f0fe; color: var(--navy); border: 1px solid var(--navy); }
+        
+        .qc-valid { color: var(--green); font-weight: bold; }
+        .qc-invalid { color: #95a5a6; font-style: italic; }
+        
+        .metric-badge { background: var(--green); color: white; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 0.75rem;}
+        .metric-legacy { background: #e0e0e0; color: #666; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 0.75rem;}
+        
+        /* Modal Info */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(3px);}
+        .modal-card { background: white; width: 90%; max-width: 550px; border-radius: 10px; padding: 30px; border-top: 6px solid var(--gold); position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2);}
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #888; transition: 0.2s;}
+        .close-btn:hover { color: #d32f2f; transform: scale(1.1);}
+        .m-row { margin-bottom: 12px; border-bottom: 1px dashed #eee; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start;}
+        .m-lbl { font-size: 0.8rem; color: #666; font-weight: bold; text-transform: uppercase; width: 40%;}
+        .m-val { font-size: 0.95rem; color: #111; text-align: right; width: 60%; word-wrap: break-word; line-height: 1.4;}
+    </style>
+</head>
+<body>
+
+    <header class="hero">
+        <div class="logo-ring"><i class="fas fa-circle-nodes"></i></div>
+        <h1>EVisionary</h1>
+        <p>MISEV-Compliant Multi-Omics Extracellular-Vesicle Harmonization</p>
+    </header>
+
+    <div class="main-content">
+        <div class="search-wrapper">
+            <input type="text" id="q" placeholder="Search Molecule (e.g., CD63, miR-21, Cholesterol), Disease, Biofluid (e.g., Breast milk)...">
+            <button class="btn-go" onclick="runSearch()"><i class="fas fa-search"></i> SEARCH</button>
+        </div>
+
+        <!-- UI States -->
+        <div id="loadingState" class="state-container loading-state">
+            <i class="fas fa-spinner"></i>
+            <h3>Interrogating Multi-Omics Parquet...</h3>
+        </div>
+
+        <div id="emptyState" class="state-container empty-state">
+            <i class="fas fa-search-minus"></i>
+            <h3>No Records Found</h3>
+            <p id="emptyMsg">We couldn't find any EV data matching your query.</p>
+        </div>
+
+        <div id="dashboard" class="charts-row">
+            <div class="chart-box"><canvas id="cSpecies"></canvas></div>
+            <div class="chart-box"><canvas id="cValidation"></canvas></div>
+            <div class="chart-box"><canvas id="cMethod"></canvas></div>
+        </div>
+
+        <div id="results" class="table-area">
+            <div class="table-header-box">
+                <h3 style="color:var(--navy); margin:0;"><i class="fas fa-database"></i> Retrieved Records (<span id="recCount">0</span>)</h3>
+                <button class="btn-export" onclick="doExport()">
+                    <i class="fas fa-file-csv"></i> Export Data
+                </button>
+            </div>
+            
+            <div class="table-scroll">
+                <table id="mainTable">
+                    <thead>
+                        <tr>
+                            <th class="col-type">Type</th>
+                            <th class="col-id sortable" onclick="sortTable('name')" title="Sort by Identifier">Identifier <i class="fas fa-sort"></i></th>
+                            <th class="col-species sortable" onclick="sortTable('species')" title="Sort by Species">Species <i class="fas fa-sort"></i></th>
+                            <th class="col-disease">Disease/Condition</th>
+                            <th class="col-method">Isolation Method</th>
+                            <th class="col-qc">QC Validation</th>
+                            <th class="col-metric sortable" onclick="sortTable('ev_metric')" title="Sort by Score">EV-Metric <i class="fas fa-sort"></i></th>
+                            <th class="col-year sortable" onclick="sortTable('year')" title="Sort by Year">Year <i class="fas fa-sort"></i></th>
+                            <th class="col-db">Database</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal" onclick="if(event.target.id==='modal') this.style.display='none'">
+        <div class="modal-card">
+            <span class="close-btn" onclick="document.getElementById('modal').style.display='none'">&times;</span>
+            <h2 style="color:var(--navy); margin-top:0; margin-bottom: 20px;" id="m-title">Record Details</h2>
+            
+            <h4 style="color:var(--navy); margin-bottom: 10px; border-bottom: 1px solid var(--gray);"><i class="fas fa-info-circle"></i> Biological Context</h4>
+            <div class="m-row"><span class="m-lbl">Sample / Tissue Source</span><span class="m-val" id="m-sample"></span></div>
+            <div class="m-row"><span class="m-lbl">Vesicle Type</span><span class="m-val" id="m-vesicle"></span></div>
+            <div class="m-row"><span class="m-lbl">Disease / Condition</span><span class="m-val" style="color:#d32f2f; font-weight:bold;" id="m-disease"></span></div>
+            
+            <h4 style="color:var(--navy); margin-top: 20px; margin-bottom: 10px; border-bottom: 1px solid var(--gray);"><i class="fas fa-book"></i> Publication</h4>
+            <div class="m-row"><span class="m-lbl">Publication Year</span><span class="m-val" id="m-year"></span></div>
+            <div class="m-row" style="border:none"><span class="m-lbl">Reference (PMID)</span><span class="m-val" id="m-pmid"></span></div>
+        </div>
+    </div>
+
+    <script>
+        let chartS = null, chartM = null, chartV = null;
+        let currentData = [];
+        let sortDir = 1;
+
+        async function runSearch() {
+            const query = document.getElementById('q').value.trim();
+            if(!query) return;
+            
+            // UX: Reset UI States
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('loadingState').style.display = 'block';
+
+            try {
+                const res = await fetch(`/search?q=${encodeURIComponent(query)}`);
+                currentData = await res.json();
+                
+                document.getElementById('loadingState').style.display = 'none';
+                
+                if(currentData.length > 0) { 
+                    document.getElementById('recCount').innerText = currentData.length;
+                    renderCharts(currentData); 
+                    renderTable(currentData); 
+                } else { 
+                    // Show Elegant Empty State
+                    document.getElementById('emptyState').style.display = 'block';
+                    document.getElementById('emptyMsg').innerHTML = `We couldn't find any EV records matching <b>"${query}"</b>.<br>Try checking your spelling or using broader terms like "Blood" or "CD63".`;
+                }
+            } catch(e) { 
+                console.error(e); 
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'block';
+                document.getElementById('emptyMsg').innerHTML = `An internal server error occurred while searching. Please try again.`;
+            }
+        }
+
+        function renderTable(data) {
+            document.getElementById('results').style.display = 'block';
+            const tbody = document.querySelector('#mainTable tbody');
+            tbody.innerHTML = '';
+            
+            data.forEach(r => {
+                let diseaseColor = (r.disease.toLowerCase() === 'unknown' || r.disease.toLowerCase().includes('healthy')) ? '#666' : '#d32f2f';
+
+                let dbClass = 'db-badge ';
+                if(r.source.toLowerCase().includes('ev-track')) dbClass += 'db-evtrack';
+                else dbClass += 'db-legacy';
+
+                // Metadata-only styling logic
+                let isMetadata = r.type.toLowerCase().includes('metadata');
+                let badgeClass = isMetadata ? 'badge badge-meta' : 'badge';
+                let idStyle = isMetadata ? 'color:#888; font-weight:normal; font-style:italic;' : 'color:var(--navy); font-weight:bold;';
+
+                let qcText = r.characterization.length > 30 ? r.characterization.substring(0, 30) + '...' : r.characterization;
+                let qcHtml = qcText.toLowerCase().includes('not reported') 
+                    ? `<span class="qc-invalid" title="${r.characterization}"><i class="fas fa-times-circle"></i> Unverified</span>`
+                    : `<span class="qc-valid" title="${r.characterization}"><i class="fas fa-check-circle"></i> ${qcText}</span>`;
+
+                let metricHtml = r.ev_metric.toLowerCase().includes('legacy')
+                    ? `<span class="metric-legacy">${r.ev_metric}</span>`
+                    : `<span class="metric-badge">${r.ev_metric}</span>`;
+
+                const tr = document.createElement('tr');
+                tr.onclick = () => showModal(r);
+                tr.innerHTML = `
+                    <td class="col-type"><span class="${badgeClass}">${r.type}</span></td>
+                    <td class="col-id" style="${idStyle}">${r.name}</td>
+                    <td class="col-species italic-text">${r.species}</td>
+                    <td class="col-disease" style="color:${diseaseColor}; font-weight:bold;" title="${r.disease}">${r.disease}</td>
+                    <td class="col-method" title="${r.method}">${r.method}</td>
+                    <td class="col-qc">${qcHtml}</td>
+                    <td class="col-metric">${metricHtml}</td>
+                    <td class="col-year" style="color:var(--navy)">${r.year}</td>
+                    <td class="col-db"><span class="${dbClass}">${r.source}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function showModal(r) {
+            document.getElementById('m-title').innerText = `${r.name} (${r.type})`;
+            document.getElementById('m-sample').innerText = r.sample;
+            document.getElementById('m-vesicle').innerText = r.vesicle;
+            document.getElementById('m-disease').innerText = r.disease;
+            document.getElementById('m-year').innerText = r.year;
+            document.getElementById('m-pmid').innerHTML = r.pmid !== 'Unknown' ? `<a href="https://pubmed.ncbi.nlm.nih.gov/${r.pmid}" target="_blank" style="color:var(--navy); text-decoration:underline;">PubMed: ${r.pmid} <i class="fas fa-external-link-alt" style="font-size:0.8rem"></i></a>` : 'Unknown';
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function renderCharts(data) {
+            document.getElementById('dashboard').style.display = 'grid';
+            const sMap = {}, mMap = {};
+            let validCount = 0, invalidCount = 0;
+
+            data.forEach(d => { 
+                sMap[d.species] = (sMap[d.species]||0)+1; 
+                let m = d.method.toLowerCase().includes('unknown') ? 'Not Reported' : d.method;
+                mMap[m] = (mMap[m]||0)+1; 
+                if(d.characterization.toLowerCase().includes('not reported')) invalidCount++;
+                else validCount++;
+            });
+
+            const pColors = ['#1f4e79', '#228B22', '#E0E0E0', '#7f8c8d', '#bdc3c7'];
+
+            const topS = Object.entries(sMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+            if(chartS) chartS.destroy();
+            chartS = new Chart(document.getElementById('cSpecies'), {
+                type: 'doughnut',
+                data: { labels: topS.map(x=>x[0]), datasets: [{ data: topS.map(x=>x[1]), backgroundColor: pColors }] },
+                options: { 
+                    responsive: true, maintainAspectRatio: false, 
+                    plugins: { 
+                        title: {display: true, text: 'Top Species'},
+                        legend: { labels: { font: { family: 'Arial', style: 'italic' } } },
+                        tooltip: { titleFont: { family: 'Arial', style: 'italic' }, bodyFont: { family: 'Arial', style: 'italic' } }
+                    } 
+                }
+            });
+
+            if(chartV) chartV.destroy();
+            chartV = new Chart(document.getElementById('cValidation'), {
+                type: 'pie',
+                data: { labels: ['Physically Validated', 'Unverified Data'], datasets: [{ data: [validCount, invalidCount], backgroundColor: ['#228B22', '#E0E0E0'] }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { title: {display: true, text: 'QC Validation Status'} } }
+            });
+
+            const topM = Object.entries(mMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+            if(chartM) chartM.destroy();
+            chartM = new Chart(document.getElementById('cMethod'), {
+                type: 'bar',
+                data: { labels: topM.map(x=>x[0].substring(0,18)), datasets: [{ label: 'Count', data: topM.map(x=>x[1]), backgroundColor: '#1f4e79' }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display: false}, title: {display: true, text: 'Top Isolation Methods'} } }
+            });
+        }
+
+        function doExport() {
+            if (currentData.length === 0) return alert("No data to export!");
+            
+            let csv = "Type,Identifier,Species,Disease_Condition,Sample_Tissue,Isolation_Method,Characterization,EV_Metric,Year,Database,PMID\n";
+            currentData.forEach(r => { 
+                let name = r.name.toString().replace(/"/g, '""');
+                let char = r.characterization.toString().replace(/"/g, '""');
+                let sample = r.sample.toString().replace(/"/g, '""');
+                let method = r.method.toString().replace(/"/g, '""');
+                let disease = r.disease.toString().replace(/"/g, '""');
+                
+                csv += `"${r.type}","${name}","${r.species}","${disease}","${sample}","${method}","${char}","${r.ev_metric}","${r.year}","${r.source}","${r.pmid}"\n`; 
+            });
+            const blob = new Blob([csv], {type:'text/csv'});
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'EVisionary_Full_Export.csv'; a.click();
+        }
+
+        function sortTable(key) {
+            sortDir *= -1;
+            currentData.sort((a, b) => {
+                let valA = a[key] ? a[key].toString().toLowerCase() : "";
+                let valB = b[key] ? b[key].toString().toLowerCase() : "";
+                
+                if(!isNaN(a[key]) && !isNaN(b[key]) && a[key] !== "Unknown" && b[key] !== "Unknown") { 
+                    valA = Number(a[key]); 
+                    valB = Number(b[key]); 
+                }
+                return valA < valB ? -1 * sortDir : (valA > valB ? 1 * sortDir : 0);
+            });
+            renderTable(currentData);
+        }
+
+        document.getElementById('q').addEventListener('keypress', e=>{ if(e.key==='Enter') runSearch() });
+    </script>
+</body>
+</html>
