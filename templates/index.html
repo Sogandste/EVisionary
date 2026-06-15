@@ -328,6 +328,11 @@
             font-style: italic;
         }
 
+        /* Italic styling applied selectively to recognised binomials only */
+        .species-cell i {
+            font-style: italic;
+        }
+
         .muted {
             color: #777;
         }
@@ -663,6 +668,16 @@
     let chartScore = null;
     let chartGroup = null;
 
+    // Keep in sync with KNOWN_SCIENTIFIC in evisionary_common.py
+    const KNOWN_SCIENTIFIC = new Set([
+        "Homo sapiens", "Mus musculus", "Rattus norvegicus", "Bos taurus",
+        "Sus scrofa", "Drosophila melanogaster", "Canis lupus familiaris",
+        "Escherichia coli", "Ovis aries", "Equus caballus", "Gallus gallus",
+        "Pseudomonas aeruginosa", "Neisseria meningitidis", "Staphylococcus aureus",
+        "Porphyromonas gingivalis", "Acinetobacter baumannii", "Salmonella enterica",
+        "Helicobacter pylori", "Vibrio cholerae"
+    ]);
+
     function safeText(value, fallback = 'Unknown') {
         if (value === null || value === undefined) return fallback;
         const text = String(value).trim();
@@ -676,6 +691,26 @@
             .replaceAll('>', '&gt;')
             .replaceAll('"', '&quot;')
             .replaceAll("'", '&#039;');
+    }
+
+    // A label may be a multi-species string "A | B"; italicise if ANY token is a known binomial.
+    function isScientificLabel(label) {
+        return String(label).split('|').some(p => KNOWN_SCIENTIFIC.has(p.trim()));
+    }
+
+    // Client-side fallback in case backend species_html is missing.
+    function speciesToHtmlFallback(val) {
+        const text = safeText(val);
+        if (text === 'Unknown') return 'Unknown';
+        return text.split('|').map(p => {
+            const t = p.trim();
+            return KNOWN_SCIENTIFIC.has(t) ? `<i>${escapeHtml(t)}</i>` : escapeHtml(t);
+        }).join(' | ');
+    }
+
+    function renderSpeciesHtml(r) {
+        // Prefer backend-provided, XSS-safe species_html; fall back to client builder.
+        return r.species_html || speciesToHtmlFallback(r.species);
     }
 
     function clearDynamicOptions(selectEl) {
@@ -885,7 +920,7 @@
             tr.innerHTML = `
                 <td><span class="badge badge-gray">${escapeHtml(safeText(r.type))}</span></td>
                 <td>${escapeHtml(safeText(r.name))}</td>
-                <td class="italic-text">${escapeHtml(safeText(r.species))}</td>
+                <td class="species-cell">${renderSpeciesHtml(r)}</td>
                 <td>${escapeHtml(safeText(r.disease))}</td>
                 <td>${escapeHtml(safeText(r.method))}</td>
                 <td>${sourceBadge}</td>
@@ -946,7 +981,7 @@
         document.getElementById('m-type-norm').innerText = safeText(r.type_norm);
         document.getElementById('m-type-group').innerText = safeText(r.type_group);
         document.getElementById('m-type').innerText = safeText(r.type);
-        document.getElementById('m-species').innerText = safeText(r.species);
+        document.getElementById('m-species').innerHTML = renderSpeciesHtml(r);
         document.getElementById('m-sample').innerText = safeText(r.sample);
         document.getElementById('m-disease').innerText = safeText(r.disease);
         document.getElementById('m-method').innerText = safeText(r.method);
@@ -1006,7 +1041,8 @@
             speciesMap,
             'Top Species in Retrieved Set',
             5,
-            ['#1f4e79','#228B22','#c9d6df','#95a5a6','#dfe6e9']
+            ['#1f4e79','#228B22','#c9d6df','#95a5a6','#dfe6e9'],
+            true   // italicise recognised binomials in legend
         );
 
         chartSource = makeChart(
@@ -1015,7 +1051,8 @@
             sourceMap,
             'Source Distribution',
             null,
-            ['#1f4e79','#228B22','#95a5a6','#d4d8dd']
+            ['#1f4e79','#228B22','#95a5a6','#d4d8dd'],
+            false
         );
 
         chartScore = makeChart(
@@ -1024,7 +1061,8 @@
             scoreBandMap,
             'Metadata Score Bands',
             null,
-            ['#228B22','#f1c40f','#e67e22','#c0392b']
+            ['#228B22','#f1c40f','#e67e22','#c0392b'],
+            false
         );
 
         chartGroup = makeChart(
@@ -1033,16 +1071,26 @@
             groupMap,
             'Molecule Groups in Retrieved Set',
             6,
-            ['#1f4e79']
+            ['#1f4e79'],
+            false
         );
     }
 
-    function makeChart(canvasId, type, dataMap, title, topN, colors) {
+    function makeChart(canvasId, type, dataMap, title, topN, colors, italicLabels = false) {
         let entries = Object.entries(dataMap).sort((a, b) => b[1] - a[1]);
         if (topN) entries = entries.slice(0, topN);
 
         const labels = entries.map(x => x[0]);
         const values = entries.map(x => x[1]);
+
+        // Per-label font styling: italicise recognised scientific binomials.
+        const labelFont = (ctx) => {
+            const idx = (ctx && typeof ctx.index === 'number') ? ctx.index : 0;
+            const lbl = labels[idx];
+            return (italicLabels && lbl && isScientificLabel(lbl))
+                ? { style: 'italic' }
+                : { style: 'normal' };
+        };
 
         return new Chart(document.getElementById(canvasId), {
             type: type,
@@ -1059,12 +1107,16 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: true },
+                    legend: {
+                        display: true,
+                        labels: italicLabels ? { font: labelFont } : {}
+                    },
                     title: { display: true, text: title }
                 },
                 scales: type === 'bar'
                     ? {
-                        y: { beginAtZero: true }
+                        y: { beginAtZero: true },
+                        x: italicLabels ? { ticks: { font: labelFont } } : {}
                     }
                     : {}
             }
