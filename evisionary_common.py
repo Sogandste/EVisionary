@@ -15,11 +15,15 @@ import pandas as pd
 # ---------------------------------------------------------
 # Paths (key_B).
 # ---------------------------------------------------------
-KEYB_OUTPUT_DIR = "/Users/sogand/EVisionary_outputs_keyB"
-Path(KEYB_OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
+REPO_ROOT = Path(__file__).resolve().parent
 
-DATA_PATH_MASTER = os.path.join(KEYB_OUTPUT_DIR, "unified_EVmetadata_keyB.parquet")
-DATA_PATH_ENRICHED = os.path.join(KEYB_OUTPUT_DIR, "unified_EVmetadata_enriched.parquet")
+LOCAL_KEYB_OUTPUT_DIR = Path("/Users/sogand/EVisionary_outputs_keyB")
+REPO_DATA_DIR = REPO_ROOT / "data"
+
+KEYB_OUTPUT_DIR = LOCAL_KEYB_OUTPUT_DIR if LOCAL_KEYB_OUTPUT_DIR.exists() else REPO_DATA_DIR
+
+DATA_PATH_MASTER = str(KEYB_OUTPUT_DIR / "unified_EVmetadata_keyB.parquet")
+DATA_PATH_ENRICHED = str(KEYB_OUTPUT_DIR / "unified_EVmetadata_enriched.parquet")
 
 # ---------------------------------------------------------
 # Single canonical missing-like token set.

@@ -1,5 +1,6 @@
-flask
-pandas
-pyarrow
-duckdb
-gunicorn
+flask>=3.0
+gunicorn>=21.0
+pandas>=2.2
+duckdb>=1.4
+pyarrow>=15.0
+numpy>=1.26
