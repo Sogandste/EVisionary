@@ -3,22 +3,22 @@
         
     
   
-      <div align="center">
+      <p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=rect&height=120&color=0:1f4e79,55:228B22,100:DAA520&text=EVisionary&fontColor=ffffff&fontSize=42&fontAlignY=45&desc=Provenance-aware%20EV%20repository%20harmonization&descAlignY=72&descSize=16" alt="EVisionary header" />
+</p>
 
-![EVisionary header](https://capsule-render.vercel.app/api?type=soft&height=115&color=0:1f4e79,55:228B22,100:DAA520&text=EVisionary&fontColor=ffffff&fontSize=42&fontAlignY=45&desc=Snapshot-based%20%7C%20Provenance-aware%20%7C%20EV%20repository%20harmonization&descSize=14&descAlignY=72)
-
-</div>
+<p align="center">
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10-228B22?labelColor=1f4e79" alt="Python"></a>
+  <a href="https://duckdb.org/"><img src="https://img.shields.io/badge/DuckDB-query%20engine-DAA520?labelColor=1f4e79" alt="DuckDB"></a>
+  <a href="https://flask.palletsprojects.com/"><img src="https://img.shields.io/badge/Flask-web%20interface-E0E0E0?labelColor=1f4e79" alt="Flask"></a>
+  <a href="https://parquet.apache.org/"><img src="https://img.shields.io/badge/Apache%20Parquet-local%20snapshot-228B22?labelColor=1f4e79" alt="Apache Parquet"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-DAA520?labelColor=1f4e79" alt="License"></a>
+  <a href="https://evisionary.onrender.com/"><img src="https://img.shields.io/badge/Demo-Render-228B22?labelColor=1f4e79" alt="Demo"></a>
+</p>
 
 # EVisionary
 
 **A snapshot-based, provenance-aware framework for harmonizing and querying extracellular vesicle repositories**
-
-[![Python](https://img.shields.io/badge/Python-3.10-228B22?labelColor=1f4e79)](https://www.python.org/)
-[![DuckDB](https://img.shields.io/badge/DuckDB-query%20engine-DAA520?labelColor=1f4e79)](https://duckdb.org/)
-[![Flask](https://img.shields.io/badge/Flask-web%20interface-E0E0E0?labelColor=1f4e79)](https://flask.palletsprojects.com/)
-[![Parquet](https://img.shields.io/badge/Apache%20Parquet-local%20snapshot-228B22?labelColor=1f4e79)](https://parquet.apache.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-DAA520?labelColor=1f4e79)](LICENSE)
-[![Demo](https://img.shields.io/badge/Demo-Render-228B22?labelColor=1f4e79)](https://evisionary.onrender.com/)
 
 ---
 
@@ -30,103 +30,100 @@ The framework addresses a practical limitation in EV bioinformatics: existing EV
 
 EVisionary harmonizes these sources conservatively. It standardizes selected fields, retains raw annotations, preserves repository identity, and avoids unsupported biological inference. Missing or ambiguous values are represented explicitly as `Unknown`.
 
-> **Design principle:** EVisionary improves cross-repository search without hiding source-specific uncertainty.
-
 EVisionary is **not** a live federated query engine. It operates on dated local snapshots to prioritize reproducibility, auditability, and stable query behavior.
 
-Demo:
+**Live demo:** [https://evisionary.onrender.com/](https://evisionary.onrender.com/)
 
-```text
-https://evisionary.onrender.com/
-    
-    
-  
-  
+---
 
-Motivation
+## Motivation
 
 EV repositories are valuable but incomplete when used in isolation. Cargo-level evidence, disease context, biofluid annotation, species information, and methodological metadata are not consistently captured across sources or at the same granularity.
 
-Naive integration can introduce two problems:
+Naive integration can introduce two major problems:
 
+1. **Simple concatenation** may duplicate evidence, fragment equivalent labels, or obscure the source of a record.
+2. **Over-harmonization** may collapse labels into unsupported biological equivalences.
 
-Simple concatenation may duplicate evidence, fragment equivalent labels, or obscure the source of a record.
+EVisionary takes a conservative middle path: it improves cross-repository search while keeping provenance, uncertainty, and metadata sparsity visible.
 
-Over-harmonization may collapse labels into unsupported biological equivalences.
+---
 
+## Key Features
 
-EVisionary takes a conservative middle path: it improves cross-repository search while keeping provenance and uncertainty visible.
+| Feature | Description |
+|---|---|
+| Snapshot-based integration | Uses dated local exports rather than live repository calls |
+| Provenance preservation | Retains source identity throughout normalization and deduplication |
+| Conservative harmonization | Normalizes selected fields without unsupported semantic inference |
+| Multi-cargo support | Includes protein, mRNA, miRNA, lipid, and study-level EV-TRACK records |
+| Local query backend | Uses Apache Parquet and DuckDB for efficient local querying |
+| Web interface | Provides search, filtering, summary plots, PubMed links, utility scores, and CSV export |
+| Audit support | Includes validation outputs for completeness, query stability, and source complementarity |
 
+---
 
-Key Features
+## Current Snapshot
 
-Feature	 | 	Description
------------------------
-Snapshot-based integration	 | 	Uses dated local exports rather than live repository calls
-Provenance preservation	 | 	Retains source identity throughout normalization and deduplication
-Conservative harmonization	 | 	Normalizes selected fields without unsupported semantic inference
-Multi-cargo support	 | 	Includes protein, mRNA, miRNA, lipid, and study-level EV-TRACK records
-Local query backend	 | 	Uses Apache Parquet and DuckDB for efficient local querying
-Web interface	 | 	Provides search, filtering, summary plots, PubMed links, utility scores, and CSV export
-Audit support	 | 	Includes validation outputs for completeness, query stability, and source complementarity
+| Metric | Value |
+|---|---:|
+| Source rows processed | 713,667 |
+| Final harmonized records | 258,460 |
+| Cargo-level records | 253,491 |
+| Study-level EV-TRACK records | 4,969 |
+| Vesiclepedia records | 195,488 |
+| ExoCarta records | 58,003 |
+| EV-TRACK records | 4,969 |
+| Missing or unusable method field | 16.87% |
 
-Current Snapshot
+---
 
-Metric	 | 	Value
-----------------
-Source rows processed	 | 	713,667
-Final harmonized records	 | 	258,460
-Cargo-level records	 | 	253,491
-Study-level EV-TRACK records	 | 	4,969
-Vesiclepedia records	 | 	195,488
-ExoCarta records	 | 	58,003
-EV-TRACK records	 | 	4,969
-Missing or unusable method field	 | 	16.87%
+## Molecular Cargo Composition
 
-Molecular Cargo Composition
+| Molecular class | Records | Unique PMIDs |
+|---|---:|---:|
+| Protein | 207,623 | 569 |
+| mRNA | 26,701 | 26 |
+| miRNA | 16,131 | 120 |
+| Lipid | 2,896 | 52 |
 
-Molecular class	 | 	Records	 | 	Unique PMIDs
---------------------------------------------
-Protein	 | 	207,623	 | 	569
-mRNA	 | 	26,701	 | 	26
-miRNA	 | 	16,131	 | 	120
-Lipid	 | 	2,896	 | 	52
-Disease annotations were available in 4,949 records, corresponding to 1.92% of the harmonized snapshot. This highlights persistent sparsity of disease and clinical-context metadata even after cross-repository integration.
+Disease annotations were available in **4,949 records**, corresponding to **1.92%** of the harmonized snapshot. This highlights persistent sparsity of disease and clinical-context metadata even after cross-repository integration.
 
+---
 
-Source Complementarity
+## Source Complementarity
 
-Molecular class	 | 	Vesiclepedia	 | 	ExoCarta	 | 	Main pattern
---------------------------------------------------------------
-Protein	 | 	160,806	 | 	46,817	 | 	Vesiclepedia-dominant
-mRNA	 | 	23,307	 | 	3,394	 | 	Vesiclepedia-dominant
-miRNA	 | 	10,091	 | 	6,040	 | 	Shared coverage
-Lipid	 | 	1,283	 | 	1,613	 | 	ExoCarta-dominant
-The integrated snapshot shows that repositories are complementary rather than interchangeable. In particular, disease and biofluid annotations remain sparse and source-dependent.
+| Molecular class | Vesiclepedia | ExoCarta | Main pattern |
+|---|---:|---:|---|
+| Protein | 160,806 | 46,817 | Vesiclepedia-dominant |
+| mRNA | 23,307 | 3,394 | Vesiclepedia-dominant |
+| miRNA | 10,091 | 6,040 | Shared coverage |
+| Lipid | 1,283 | 1,613 | ExoCarta-dominant |
 
+The integrated snapshot shows that EV repositories are complementary rather than interchangeable. In particular, disease and biofluid annotations remain sparse and source-dependent.
 
-Example Queries
+---
 
-Use case	 | 	Query logic	 | 	Records	 | 	Unique PMIDs	 | 	Interpretation
-------------------------------------------------------------------------
-Protein cargo	 | 	molecule_type = Protein	 | 	207,623	 | 	569	 | 	Broad cargo retrieval
-miRNA cargo	 | 	molecule_type = miRNA	 | 	16,131	 | 	120	 | 	Canonical miRNA retrieval
-Lipid cargo	 | 	molecule_type = Lipid	 | 	2,896	 | 	52	 | 	Source-complementary coverage
-Plasma context	 | 	sample_name contains plasma	 | 	547	 | 	444	 | 	Biofluid metadata are retrievable but source-dependent
-Breast cancer context	 | 	disease contains breast cancer	 | 	12	 | 	11	 | 	Disease metadata are sparse
-Breast cancer + plasma	 | 	Combined constraint	 | 	6	 | 	6	 | 	Limited co-annotation
-Breast cancer + plasma + miRNA	 | 	Triple constraint	 | 	0	 | 	0	 | 	Metadata granularity gap
+## Example Queries
+
+| Use case | Query logic | Records | Unique PMIDs | Interpretation |
+|---|---|---:|---:|---|
+| Protein cargo | `molecule_type = Protein` | 207,623 | 569 | Broad cargo retrieval |
+| miRNA cargo | `molecule_type = miRNA` | 16,131 | 120 | Canonical miRNA retrieval |
+| Lipid cargo | `molecule_type = Lipid` | 2,896 | 52 | Source-complementary coverage |
+| Plasma context | `sample_name contains plasma` | 547 | 444 | Biofluid metadata are retrievable but source-dependent |
+| Breast cancer context | `disease contains breast cancer` | 12 | 11 | Disease metadata are sparse |
+| Breast cancer + plasma | Combined constraint | 6 | 6 | Limited co-annotation |
+| Breast cancer + plasma + miRNA | Triple constraint | 0 | 0 | Metadata granularity gap |
+
 A zero result for the triple-constrained query should not be interpreted as biological absence. It indicates that the current snapshots do not connect cargo, disease, and biofluid annotations at compatible granularity.
 
+---
 
-Workflow
+## Workflow
 
-        
-        text
-        
-    
-  
-      Repository exports
+```text
+Repository exports
 (Vesiclepedia, ExoCarta, EV-TRACK)
         |
         v
@@ -228,6 +225,8 @@ The utility score is not a biological confidence score. It should not be interpr
 
 Installation
 
+Clone the repository:
+
         
         bash
         
@@ -267,6 +266,8 @@ Install dependencies:
 
 Running Locally
 
+Run the primary application script:
+
         
         bash
         
@@ -304,18 +305,10 @@ Depending on deployment configuration, the root-level entry point may also be us
 
 Render Deployment
 
-Public demo:
+The public demo is available at:
 
-        
-        text
-        
-    
-  
-      https://evisionary.onrender.com/
-    
-    
-  
-  
+https://evisionary.onrender.com/
+
 If deployment uses Scripts/app.py:
 
         
@@ -555,16 +548,10 @@ A manuscript describing EVisionary is currently in preparation. Until publicatio
     
   
   
-        
-        text
-        
-    
-  
-      https://github.com/Sogandste/EVisionary
-    
-    
-  
-  
+Repository:
+
+https://github.com/Sogandste/EVisionary
+
 
 Related Resources
 
@@ -599,6 +586,8 @@ The MIT License applies to the source code in this repository. Licensing terms o
 
 Contact
 
+For questions, suggestions, or collaboration requests:
+
         
         text
         
@@ -611,22 +600,14 @@ Contact
   
 Issue tracker:
 
-        
-        text
-        
-    
-  
-      https://github.com/Sogandste/EVisionary/issues
-    
-    
-  
-  
+https://github.com/Sogandste/EVisionary/issues
+
 
 Summary
 
 EVisionary provides a reproducible, source-aware query layer for extracellular vesicle repository data. It harmonizes heterogeneous EV records into a local Parquet-based resource while preserving provenance and making metadata gaps explicit.
 
 
-
+  
 
 ```
