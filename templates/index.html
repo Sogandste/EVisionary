@@ -176,6 +176,15 @@
             border: 1px solid #eee;
         }
 
+        .chart-title{
+            text-align:center;
+            font-size:13px;
+            font-weight:600;
+            color:#666;
+            margin:0 0 6px 0;
+            line-height:1.2;
+        }
+
         .custom-legend {
             display: flex;
             flex-wrap: wrap;
@@ -185,6 +194,19 @@
             padding-bottom: 6px;
             max-height: 52px;
             overflow-y: auto;
+        }
+
+        .custom-legend.species-under-title-legend{
+            display:flex;
+            flex-wrap:wrap;
+            justify-content:center;
+            align-items:center;
+            gap:4px 10px;
+            font-size:0.72rem;
+            padding-bottom:8px;
+            max-height:56px;
+            overflow-y:auto;
+            text-align:center;
         }
 
         .custom-legend .legend-item {
@@ -199,34 +221,6 @@
             height: 9px;
             border-radius: 50%;
             flex-shrink: 0;
-        }
-
-        .species-chart-box {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .species-chart-box canvas {
-            flex: 1 1 auto;
-            min-width: 0;
-        }
-
-        .custom-legend.side-legend {
-            width: 45%;
-            max-height: none;
-            overflow: visible;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            justify-content: center;
-            gap: 6px;
-            padding: 0;
-            text-align: left;
-        }
-
-        .custom-legend.side-legend .legend-item {
-            white-space: normal;
         }
 
         .table-area { margin-top: 28px; display: none; }
@@ -524,9 +518,10 @@
     </div>
 
     <div id="dashboard" class="charts-row">
-        <div class="chart-box species-chart-box">
+        <div class="chart-box">
+            <div class="chart-title">Top Species in Retrieved Set</div>
+            <div id="speciesLegend" class="custom-legend species-under-title-legend"></div>
             <canvas id="cSpecies"></canvas>
-            <div id="speciesLegend" class="custom-legend side-legend"></div>
         </div>
         <div class="chart-box"><canvas id="cSource"></canvas></div>
         <div class="chart-box"><canvas id="cScore"></canvas></div>
@@ -931,7 +926,10 @@ function makeChart(canvasId, type, dataMap, title, topN, colors, customLegendId 
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: !customLegendId }, title: { display: true, text: title } },
+            plugins: {
+                legend: { display: !customLegendId },
+                title: { display: !!title, text: title || "" }
+            },
             scales: type === "bar" ? { y: { beginAtZero: true } } : {}
         }
     });
@@ -957,7 +955,11 @@ function renderCharts(data) {
         groupMap[group] = (groupMap[group] || 0) + 1;
     });
 
-    chartSpecies = makeChart("cSpecies", "doughnut", speciesMap, "Top Species in Retrieved Set", 5, ["#1f4e79", "#228B22", "#c9d6df", "#95a5a6", "#dfe6e9"], "speciesLegend");
+    chartSpecies = makeChart(
+        "cSpecies", "doughnut", speciesMap, null, 5,
+        ["#1f4e79", "#228B22", "#c9d6df", "#95a5a6", "#dfe6e9"],
+        "speciesLegend"
+    );
     chartSource  = makeChart("cSource", "pie", sourceMap, "Source Distribution", null, ["#1f4e79", "#228B22", "#95a5a6", "#d4d8dd"]);
     chartScore   = makeChart("cScore", "bar", scoreBandMap, "Metadata Score Bands", null, ["#228B22", "#f1c40f", "#e67e22", "#c0392b"]);
     chartGroup   = makeChart("cGroup", "bar", groupMap, "Molecule Groups in Retrieved Set", 6, ["#1f4e79"]);
