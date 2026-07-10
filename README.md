@@ -11,13 +11,13 @@
   <a href="https://evisionary.onrender.com/"><img src="https://img.shields.io/badge/Demo-Render-228B22?labelColor=1f4e79" alt="Demo"></a>
 </p>
 
-# EVisionary
+# <font color="#1f4e79">EVisionary</font>
 
 **A snapshot-based, provenance-aware framework for harmonizing and querying extracellular vesicle repositories**
 
 ---
 
-## Overview
+## <font color="#1f4e79">Overview</font>
 
 EVisionary is a local, snapshot-based framework developed to harmonize and query extracellular vesicle (EV) repository data while preserving the original source provenance. By integrating dated exports from **Vesiclepedia**, **ExoCarta**, and **EV-TRACK**, it creates a unified, locally queryable resource designed specifically for reproducible EV data reuse.
 
@@ -31,7 +31,7 @@ To address this, EVisionary harmonizes these disparate sources conservatively. I
 
 ---
 
-## Motivation
+## <font color="#1f4e79">Motivation</font>
 
 While EV repositories are incredibly valuable, they are often incomplete when utilized in isolation. Vital details such as cargo-level evidence, disease context, biofluid annotations, species information, and methodological metadata are not consistently captured across sources or at the same level of granularity.
 
@@ -43,7 +43,7 @@ EVisionary takes a conservative middle path. It significantly improves cross-rep
 
 ---
 
-## Key Features
+## <font color="#1f4e79">Key Features</font>
 
 | Feature | Description |
 |---|---|
@@ -57,7 +57,7 @@ EVisionary takes a conservative middle path. It significantly improves cross-rep
 
 ---
 
-## Current Snapshot Statistics
+## <font color="#1f4e79">Current Snapshot Statistics</font>
 
 | Metric | Value |
 |---|---:|
@@ -71,7 +71,7 @@ EVisionary takes a conservative middle path. It significantly improves cross-rep
 
 ---
 
-## Molecular Cargo Composition
+## <font color="#1f4e79">Molecular Cargo Composition</font>
 
 | Molecular Class | Total Records | Unique PMIDs |
 |---|---:|---:|
@@ -84,7 +84,7 @@ EVisionary takes a conservative middle path. It significantly improves cross-rep
 
 ---
 
-## Source Complementarity
+## <font color="#1f4e79">Source Complementarity</font>
 
 | Molecular Class | Vesiclepedia | ExoCarta | Main Pattern |
 |---|---:|---:|---|
@@ -97,7 +97,7 @@ The integrated snapshot clearly demonstrates that EV repositories are complement
 
 ---
 
-## Example Queries in Practice
+## <font color="#1f4e79">Example Queries in Practice</font>
 
 | Use Case | Query Logic | Records | PMIDs | Interpretation |
 |---|---|---:|---:|---|
@@ -113,7 +113,7 @@ A zero result for the triple-constrained query should **not** be interpreted as 
 
 ---
 
-## Processing Workflow
+## <font color="#1f4e79">Processing Workflow</font>
 
 ```text
 ┌──────────────────────────────────────────────┐
@@ -163,7 +163,7 @@ A zero result for the triple-constrained query should **not** be interpreted as 
 
 ---
 
-## Repository Structure
+## <font color="#1f4e79">Repository Structure</font>
 
 ```text
 EVisionary/
@@ -198,7 +198,7 @@ EVisionary/
 
 ---
 
-## Data Model
+## <font color="#1f4e79">Data Model</font>
 
 EVisionary strictly maps heterogeneous source exports to a conservative canonical schema. The core fields include:
 
@@ -222,7 +222,7 @@ Any missing or ambiguous values are carefully assigned as `Unknown`. The framewo
 
 ---
 
-## Utility Score
+## <font color="#1f4e79">Utility Score</font>
 
 To support researchers in triaging results during exploratory searches, EVisionary calculates a record-level **utility score**. This score dynamically reflects metadata completeness, query-match quality, source-prioritization rules, and the recency of the publication.
 
@@ -230,7 +230,7 @@ To support researchers in triaging results during exploratory searches, EVisiona
 
 ---
 
-## Installation
+## <font color="#1f4e79">Installation</font>
 
 Clone the repository to your local machine:
 
@@ -254,7 +254,7 @@ pip install -r requirements.txt
 
 ---
 
-## Running Locally
+## <font color="#1f4e79">Running Locally</font>
 
 Execute the primary application script:
 
@@ -276,7 +276,7 @@ python app.py
 
 ---
 
-## Render Deployment
+## <font color="#1f4e79">Render Deployment</font>
 
 The public instance of EVisionary is hosted at:
 [https://evisionary.onrender.com/](https://evisionary.onrender.com/)
@@ -295,7 +295,7 @@ web: gunicorn app:app
 
 ---
 
-## Input Data Configuration
+## <font color="#1f4e79">Input Data Configuration</font>
 
 EVisionary is built to process local exports directly from **Vesiclepedia**, **ExoCarta**, and **EV-TRACK**. 
 
@@ -312,7 +312,7 @@ data/audit/
 
 ---
 
-## Programmatic Querying (Python)
+## <font color="#1f4e79">Programmatic Querying (Python)</font>
 
 For bioinformatics pipelines, EVisionary's backend can be queried directly. Below is an example DuckDB query fetching canonical miRNA data:
 
@@ -349,7 +349,7 @@ print(results)
 
 ---
 
-## Framework Validation
+## <font color="#1f4e79">Framework Validation</font>
 
 A comprehensive validation suite supports EVisionary's processing engine, including:
 - Field completeness auditing
@@ -379,7 +379,7 @@ A comprehensive validation suite supports EVisionary's processing engine, includ
 
 ---
 
-## Guidelines for Reproducibility
+## <font color="#1f4e79">Guidelines for Reproducibility</font>
 
 To ensure complete reproducibility in downstream publications, users utilizing EVisionary should explicitly report:
 - Original source repositories utilized
@@ -394,7 +394,7 @@ To ensure complete reproducibility in downstream publications, users utilizing E
 
 ---
 
-## Limitations
+## <font color="#1f4e79">Limitations</font>
 
 EVisionary serves as a robust harmonization and query layer. It is not intended to replace primary EV repositories. Current known limitations include:
 - Absolute dependence on the completeness of source repository data.
@@ -405,7 +405,7 @@ EVisionary serves as a robust harmonization and query layer. It is not intended 
 
 ---
 
-## Appropriate Use Cases
+## <font color="#1f4e79">Appropriate Use Cases</font>
 
 **EVisionary is highly recommended for:**
 - Rapid, exploratory lookup of EV cargo markers.
@@ -423,7 +423,7 @@ EVisionary serves as a robust harmonization and query layer. It is not intended 
 
 ---
 
-## Citation
+## <font color="#1f4e79">Citation</font>
 
 A comprehensive application note detailing EVisionary is currently in preparation. Until formal publication, please cite this framework as:
 
@@ -435,7 +435,7 @@ Repository Link: [https://github.com/Sogandste/EVisionary](https://github.com/So
 
 ---
 
-## Related Resources
+## <font color="#1f4e79">Related Resources</font>
 
 - **Vesiclepedia:** [https://www.microvesicles.org/](https://www.microvesicles.org/)
 - **ExoCarta:** [http://www.exocarta.org/](http://www.exocarta.org/)
@@ -446,13 +446,13 @@ Repository Link: [https://github.com/Sogandste/EVisionary](https://github.com/So
 
 ---
 
-## Data Availability
+## <font color="#1f4e79">Data Availability</font>
 
 Raw source datasets must be individually obtained from their original respective repositories under their established licensing terms. Derived harmonized outputs, audit tables, and benchmark query results generated by EVisionary will be formally released subject to data-source licensing constraints and manuscript publication status.
 
 ---
 
-## License
+## <font color="#1f4e79">License</font>
 
 This project is open-sourced under the **MIT License**. See the `LICENSE` file for full details. 
 
@@ -460,7 +460,7 @@ This project is open-sourced under the **MIT License**. See the `LICENSE` file f
 
 ---
 
-## Contact & Support
+## <font color="#1f4e79">Contact & Support</font>
 
 For scientific inquiries, feature suggestions, or collaboration requests, please contact:
 
