@@ -198,6 +198,39 @@
             box-shadow: var(--soft-shadow);
             height: 300px;
             border: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-box canvas {
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+
+        .custom-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 10px;
+            justify-content: center;
+            font-size: 0.72rem;
+            padding-top: 6px;
+            flex-shrink: 0;
+            max-height: 60px;
+            overflow-y: auto;
+        }
+
+        .custom-legend .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .custom-legend .legend-swatch {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            flex-shrink: 0;
         }
 
         .table-area {
@@ -551,7 +584,7 @@
     </div>
 
     <div id="dashboard" class="charts-row">
-        <div class="chart-box"><canvas id="cSpecies"></canvas></div>
+        <div class="chart-box"><canvas id="cSpecies"></canvas><div id="speciesLegend" class="custom-legend"></div></div>
         <div class="chart-box"><canvas id="cSource"></canvas></div>
         <div class="chart-box"><canvas id="cScore"></canvas></div>
         <div class="chart-box"><canvas id="cGroup"></canvas></div>
@@ -693,11 +726,6 @@
             .replaceAll("'", '&#039;');
     }
 
-    // A label may be a multi-species string "A | B"; italicise if ANY token is a known binomial.
-    function isScientificLabel(label) {
-        return String(label).split('|').some(p => KNOWN_SCIENTIFIC.has(p.trim()));
-    }
-
     // Client-side fallback in case backend species_html is missing.
     function speciesToHtmlFallback(val) {
         const text = safeText(val);
@@ -711,6 +739,25 @@
     function renderSpeciesHtml(r) {
         // Prefer backend-provided, XSS-safe species_html; fall back to client builder.
         return r.species_html || speciesToHtmlFallback(r.species);
+    }
+
+    // Builds italic-aware HTML label for the custom species legend (multi-species aware).
+    function speciesLabelToLegendHtml(label) {
+        return String(label).split('|').map(p => {
+            const t = p.trim();
+            return KNOWN_SCIENTIFIC.has(t) ? `<i>${escapeHtml(t)}</i>` : escapeHtml(t);
+        }).join(' | ');
+    }
+
+    function renderCustomLegend(containerId, labels, values, colors) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = labels.map((lbl, i) => `
+            <span class="legend-item">
+                <span class="legend-swatch" style="background:${colors[i]}"></span>
+                ${speciesLabelToLegendHtml(lbl)} (${values[i]})
+            </span>
+        `).join('');
     }
 
     function clearDynamicOptions(selectEl) {
@@ -897,314 +944,3 @@
         const pmids = new Set(data.map(d => safeText(d.pmid)).filter(p => p !== 'Unknown'));
 
         document.getElementById('sumCount').innerText = data.length.toLocaleString();
-        document.getElementById('sumUtility').innerText = meanUtility.toFixed(3);
-        document.getElementById('sumDisc').innerText = discrepant.toLocaleString();
-        document.getElementById('sumPMID').innerText = pmids.size.toLocaleString();
-        document.getElementById('resultsNote').innerText =
-            'Displaying up to 500 ranked results. Click a row to inspect provenance and harmonization details.';
-    }
-
-    function renderTable(data) {
-        const tbody = document.querySelector('#mainTable tbody');
-        tbody.innerHTML = '';
-
-        data.forEach(r => {
-            const tr = document.createElement('tr');
-            tr.className = 'result-row';
-            tr.addEventListener('click', () => showModal(r));
-
-            const sourceBadge = sourceBadgeHtml(safeText(r.source));
-            const scoreClass = scoreClassName(r.metadata_utility_score);
-            const auditFlags = buildAuditFlags(r);
-
-            tr.innerHTML = `
-                <td><span class="badge badge-gray">${escapeHtml(safeText(r.type))}</span></td>
-                <td>${escapeHtml(safeText(r.name))}</td>
-                <td class="species-cell">${renderSpeciesHtml(r)}</td>
-                <td>${escapeHtml(safeText(r.disease))}</td>
-                <td>${escapeHtml(safeText(r.method))}</td>
-                <td>${sourceBadge}</td>
-                <td class="${scoreClass}">
-                    ${Number(r.metadata_utility_score || 0).toFixed(3)}
-                    <br><span style="font-size:0.72rem;">${escapeHtml(safeText(r.metadata_score_band))}</span>
-                </td>
-                <td>${Number(r.retrieval_rank_score || 0).toFixed(3)}</td>
-                <td>${auditFlags}</td>
-                <td>${escapeHtml(safeText(r.year))}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function sourceBadgeHtml(source) {
-        if (source === 'EV-TRACK') return `<span class="badge badge-green">${escapeHtml(source)}</span>`;
-        if (source === 'Vesiclepedia' || source === 'ExoCarta') return `<span class="badge badge-blue">${escapeHtml(source)}</span>`;
-        return `<span class="badge badge-gray">${escapeHtml(source)}</span>`;
-    }
-
-    function buildAuditFlags(r) {
-        const flags = [];
-        if (Number(r.raw_norm_discrepant) === 1) flags.push(`<span class="badge badge-red">raw→norm</span>`);
-        if (Number(r.norm_alias_discrepant) === 1) flags.push(`<span class="badge badge-gold">norm→alias</span>`);
-        if (flags.length === 0) flags.push(`<span class="badge badge-gray">none</span>`);
-        return flags.join(' ');
-    }
-
-    function scoreClassName(score) {
-        score = Number(score || 0);
-        if (score >= 0.75) return 'score-high';
-        if (score >= 0.50) return 'score-mid';
-        return 'score-low';
-    }
-
-    function openModal() {
-        const modal = document.getElementById('modal');
-        modal.classList.add('show');
-        document.body.classList.add('modal-open');
-    }
-
-    function closeModal() {
-        const modal = document.getElementById('modal');
-        modal.classList.remove('show');
-        document.body.classList.remove('modal-open');
-    }
-
-    function showModal(r) {
-        document.getElementById('m-title').innerText = `${safeText(r.name)} (${safeText(r.type)})`;
-        document.getElementById('m-record').innerText = safeText(r.record_uid);
-        document.getElementById('m-source-row').innerText = safeText(r.source_row_uid);
-        document.getElementById('m-pre').innerText = safeText(r.pre_dedup_uid);
-        document.getElementById('m-source').innerText = safeText(r.source);
-        document.getElementById('m-year').innerText = safeText(r.year);
-        document.getElementById('m-id').innerText = safeText(r.name);
-        document.getElementById('m-type-raw').innerText = safeText(r.type_raw);
-        document.getElementById('m-type-norm').innerText = safeText(r.type_norm);
-        document.getElementById('m-type-group').innerText = safeText(r.type_group);
-        document.getElementById('m-type').innerText = safeText(r.type);
-        document.getElementById('m-species').innerHTML = renderSpeciesHtml(r);
-        document.getElementById('m-sample').innerText = safeText(r.sample);
-        document.getElementById('m-disease').innerText = safeText(r.disease);
-        document.getElementById('m-method').innerText = safeText(r.method);
-        document.getElementById('m-vesicle').innerText = safeText(r.vesicle);
-        document.getElementById('m-char').innerText = safeText(r.characterization);
-        document.getElementById('m-utility').innerText = Number(r.metadata_utility_score || 0).toFixed(3);
-        document.getElementById('m-band').innerText = safeText(r.metadata_score_band);
-        document.getElementById('m-rank').innerText = Number(r.retrieval_rank_score || 0).toFixed(3);
-        document.getElementById('m-metric').innerText = safeText(r.ev_metric);
-
-        const discContainer = document.getElementById('m-disc');
-        let discHtml = [];
-        if (Number(r.raw_norm_discrepant) === 1) discHtml.push('<span class="badge badge-red">raw→norm discrepancy</span>');
-        if (Number(r.norm_alias_discrepant) === 1) discHtml.push('<span class="badge badge-gold">norm→alias discrepancy</span>');
-        if (discHtml.length === 0) discHtml.push('<span class="badge badge-gray">none</span>');
-        discContainer.innerHTML = `<span class="inline-badges">${discHtml.join(' ')}</span>`;
-
-        const pmid = safeText(r.pmid);
-        document.getElementById('m-pmid').innerHTML =
-            pmid !== 'Unknown'
-                ? `<a href="https://pubmed.ncbi.nlm.nih.gov/${encodeURIComponent(pmid)}" target="_blank" rel="noopener noreferrer" style="color:#1f4e79;text-decoration:underline;">PubMed: ${escapeHtml(pmid)}</a>`
-                : 'Unknown';
-
-        openModal();
-    }
-
-    function destroyAllCharts() {
-        if (chartSpecies) { chartSpecies.destroy(); chartSpecies = null; }
-        if (chartSource) { chartSource.destroy(); chartSource = null; }
-        if (chartScore) { chartScore.destroy(); chartScore = null; }
-        if (chartGroup) { chartGroup.destroy(); chartGroup = null; }
-    }
-
-    function renderCharts(data) {
-        destroyAllCharts();
-
-        const speciesMap = {};
-        const sourceMap = {};
-        const scoreBandMap = {};
-        const groupMap = {};
-
-        data.forEach(d => {
-            const species = safeText(d.species);
-            const source = safeText(d.source);
-            const band = safeText(d.metadata_score_band);
-            const group = safeText(d.type_group);
-
-            speciesMap[species] = (speciesMap[species] || 0) + 1;
-            sourceMap[source] = (sourceMap[source] || 0) + 1;
-            scoreBandMap[band] = (scoreBandMap[band] || 0) + 1;
-            groupMap[group] = (groupMap[group] || 0) + 1;
-        });
-
-        chartSpecies = makeChart(
-            'cSpecies',
-            'doughnut',
-            speciesMap,
-            'Top Species in Retrieved Set',
-            5,
-            ['#1f4e79','#228B22','#c9d6df','#95a5a6','#dfe6e9'],
-            true   // italicise recognised binomials in legend
-        );
-
-        chartSource = makeChart(
-            'cSource',
-            'pie',
-            sourceMap,
-            'Source Distribution',
-            null,
-            ['#1f4e79','#228B22','#95a5a6','#d4d8dd'],
-            false
-        );
-
-        chartScore = makeChart(
-            'cScore',
-            'bar',
-            scoreBandMap,
-            'Metadata Score Bands',
-            null,
-            ['#228B22','#f1c40f','#e67e22','#c0392b'],
-            false
-        );
-
-        chartGroup = makeChart(
-            'cGroup',
-            'bar',
-            groupMap,
-            'Molecule Groups in Retrieved Set',
-            6,
-            ['#1f4e79'],
-            false
-        );
-    }
-
-    function makeChart(canvasId, type, dataMap, title, topN, colors, italicLabels = false) {
-        let entries = Object.entries(dataMap).sort((a, b) => b[1] - a[1]);
-        if (topN) entries = entries.slice(0, topN);
-
-        const labels = entries.map(x => x[0]);
-        const values = entries.map(x => x[1]);
-
-        // Per-label font styling: italicise recognised scientific binomials.
-        const labelFont = (ctx) => {
-            const idx = (ctx && typeof ctx.index === 'number') ? ctx.index : 0;
-            const lbl = labels[idx];
-            return (italicLabels && lbl && isScientificLabel(lbl))
-                ? { style: 'italic' }
-                : { style: 'normal' };
-        };
-
-        return new Chart(document.getElementById(canvasId), {
-            type: type,
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: values,
-                    backgroundColor: colors.length === 1
-                        ? Array(values.length).fill(colors[0])
-                        : colors
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        labels: italicLabels ? { font: labelFont } : {}
-                    },
-                    title: { display: true, text: title }
-                },
-                scales: type === 'bar'
-                    ? {
-                        y: { beginAtZero: true },
-                        x: italicLabels ? { ticks: { font: labelFont } } : {}
-                    }
-                    : {}
-            }
-        });
-    }
-
-    function doExport() {
-        if (!currentData.length) {
-            alert('No data to export.');
-            return;
-        }
-
-        const header = [
-            'record_uid',
-            'source_row_uid',
-            'pre_dedup_uid',
-            'source',
-            'working_id',
-            'molecule_type_raw',
-            'molecule_type_norm',
-            'molecule_type_group',
-            'molecule_type',
-            'species',
-            'sample_name',
-            'disease',
-            'method',
-            'vesicle',
-            'year',
-            'pmid',
-            'metadata_utility_score',
-            'metadata_score_band',
-            'retrieval_rank_score',
-            'raw_norm_discrepant',
-            'norm_alias_discrepant'
-        ];
-
-        let csv = header.join(',') + '\n';
-
-        currentData.forEach(r => {
-            const vals = [
-                safeText(r.record_uid),
-                safeText(r.source_row_uid),
-                safeText(r.pre_dedup_uid),
-                safeText(r.source),
-                safeText(r.name),
-                safeText(r.type_raw),
-                safeText(r.type_norm),
-                safeText(r.type_group),
-                safeText(r.type),
-                safeText(r.species),
-                safeText(r.sample),
-                safeText(r.disease),
-                safeText(r.method),
-                safeText(r.vesicle),
-                safeText(r.year),
-                safeText(r.pmid),
-                Number(r.metadata_utility_score || 0).toFixed(3),
-                safeText(r.metadata_score_band),
-                Number(r.retrieval_rank_score || 0).toFixed(3),
-                Number(r.raw_norm_discrepant || 0),
-                Number(r.norm_alias_discrepant || 0)
-            ].map(v => `"${String(v).replace(/"/g, '""')}"`);
-
-            csv += vals.join(',') + '\n';
-        });
-
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'EVisionary_Query_Export.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-    }
-
-    document.getElementById('q').addEventListener('keypress', e => {
-        if (e.key === 'Enter') runSearch();
-    });
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            closeModal();
-        }
-    });
-
-    loadFilters();
-</script>
-</body>
-</html>
