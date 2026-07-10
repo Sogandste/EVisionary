@@ -1,747 +1,797 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{ app_name }} | Harmonized EV Metadata Explorer</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ app_name }} | Harmonized EV Metadata Explorer</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-    <style>
-        :root {
-            --navy: #1f4e79;
-            --green: #228B22;
-            --gray: #E0E0E0;
-            --gold: #FFD700;
-            --text: #333333;
-            --bg: #f5f7fa;
-            --red: #c0392b;
-            --blue: #2980b9;
-            --orange: #e67e22;
-            --shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-            --soft-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-        }
+  <style>
+    :root {
+      --navy: #1f4e79;
+      --green: #228B22;
+      --gray: #E0E0E0;
+      --gold: #FFD700;
+      --text: #333333;
+      --bg: #f5f7fa;
+      --red: #c0392b;
+      --blue: #2980b9;
+      --orange: #e67e22;
+      --shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+      --soft-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
 
-        * { box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
 
-        body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-        }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+    }
 
-        body.modal-open { overflow: hidden; }
-        a { color: var(--navy); }
+    body.modal-open { overflow: hidden; }
+    a { color: var(--navy); }
 
-        .hero {
-            background: var(--navy);
-            color: white;
-            padding: 40px 20px 50px;
-            text-align: center;
-            border-bottom: 5px solid var(--green);
-        }
+    .hero {
+      background: var(--navy);
+      color: white;
+      padding: 40px 20px 50px;
+      text-align: center;
+      border-bottom: 5px solid var(--green);
+    }
 
-        .logo-ring {
-            width: 75px;
-            height: 75px;
-            background: radial-gradient(circle, rgba(255, 215, 0, 0.9) 0%, rgba(255, 215, 0, 0.1) 70%);
-            border: 2px solid var(--gold);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 15px;
-            font-size: 32px;
-            color: #fff;
-            animation: sun-glow 3s infinite alternate;
-        }
+    .logo-ring {
+      width: 75px;
+      height: 75px;
+      background: radial-gradient(circle, rgba(255, 215, 0, 0.9) 0%, rgba(255, 215, 0, 0.1) 70%);
+      border: 2px solid var(--gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 15px;
+      font-size: 32px;
+      color: #fff;
+      animation: sun-glow 3s infinite alternate;
+    }
 
-        @keyframes sun-glow {
-            0% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.4), inset 0 0 10px rgba(255, 215, 0, 0.4); }
-            100% { box-shadow: 0 0 35px rgba(255, 215, 0, 1), inset 0 0 20px rgba(255, 215, 0, 0.8); }
-        }
+    @keyframes sun-glow {
+      0% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.4), inset 0 0 10px rgba(255, 215, 0, 0.4); }
+      100% { box-shadow: 0 0 35px rgba(255, 215, 0, 1), inset 0 0 20px rgba(255, 215, 0, 0.8); }
+    }
 
-        h1 { margin: 0; font-size: 2.2rem; }
+    h1 { margin: 0; font-size: 2.2rem; }
 
-        .subtitle {
-            margin-top: 10px;
-            font-size: 1rem;
-            opacity: 0.95;
-        }
+    .subtitle {
+      margin-top: 10px;
+      font-size: 1rem;
+      opacity: 0.95;
+    }
 
-        .main-content {
-            max-width: 1320px;
-            margin: -20px auto 40px;
-            padding: 0 20px;
-        }
+    .main-content {
+      max-width: 1320px;
+      margin: -20px auto 40px;
+      padding: 0 20px;
+    }
 
-        .search-panel {
-            background: white;
-            border-radius: 12px;
-            box-shadow: var(--shadow);
-            border: 1px solid #ddd;
-            padding: 14px;
-        }
+    .search-panel {
+      background: white;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      border: 1px solid #ddd;
+      padding: 14px;
+    }
 
-        .search-row {
-            display: grid;
-            grid-template-columns: minmax(260px, 1.7fr) repeat(3, minmax(180px, 1fr)) auto;
-            gap: 10px;
-            align-items: start;
-        }
+    .search-row {
+      display: grid;
+      grid-template-columns: minmax(260px, 1.7fr) repeat(3, minmax(180px, 1fr)) auto;
+      gap: 10px;
+      align-items: start;
+    }
 
-        .filter-wrap { display: block; min-width: 0; }
+    .filter-wrap { display: block; min-width: 0; }
 
-        input, select {
-            border: 1px solid #d6d6d6;
-            border-radius: 8px;
-            padding: 12px 14px;
-            font-size: 0.95rem;
-            outline: none;
-            background: #fff;
-            width: 100%;
-            min-height: 46px;
-        }
+    input, select {
+      border: 1px solid #d6d6d6;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 0.95rem;
+      outline: none;
+      background: #fff;
+      width: 100%;
+      min-height: 46px;
+    }
 
-        input:focus, select:focus {
-            border-color: var(--navy);
-            box-shadow: 0 0 0 3px rgba(31, 78, 121, 0.12);
-        }
+    input:focus, select:focus {
+      border-color: var(--navy);
+      box-shadow: 0 0 0 3px rgba(31, 78, 121, 0.12);
+    }
 
-        select:disabled {
-            background: #f3f4f6;
-            color: #777;
-            cursor: not-allowed;
-            border-color: #d8d8d8;
-        }
+    select:disabled {
+      background: #f3f4f6;
+      color: #777;
+      cursor: not-allowed;
+      border-color: #d8d8d8;
+    }
 
-        .filter-note {
-            margin-top: 6px;
-            font-size: 0.74rem;
-            color: #777;
-            line-height: 1.3;
-            min-height: 18px;
-        }
+    .filter-note {
+      margin-top: 6px;
+      font-size: 0.74rem;
+      color: #777;
+      line-height: 1.3;
+      min-height: 18px;
+    }
 
-        .btn-go {
-            background: var(--green);
-            color: white;
-            border: none;
-            padding: 0 24px;
-            border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-            min-height: 46px;
-            white-space: nowrap;
-            margin-top: 0;
-        }
+    .btn-go {
+      background: var(--green);
+      color: white;
+      border: none;
+      padding: 0 24px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      min-height: 46px;
+      white-space: nowrap;
+      margin-top: 0;
+    }
 
-        .btn-go:hover { background: #1b6e1b; }
-        .btn-go:disabled { opacity: 0.7; cursor: not-allowed; }
+    .btn-go:hover { background: #1b6e1b; }
+    .btn-go:disabled { opacity: 0.7; cursor: not-allowed; }
 
-        .state-container {
-            display: none;
-            text-align: center;
-            padding: 50px 20px;
-            background: white;
-            border-radius: 10px;
-            border: 1px dashed #ccc;
-            margin-top: 24px;
-        }
+    .state-container {
+      display: none;
+      text-align: center;
+      padding: 50px 20px;
+      background: white;
+      border-radius: 10px;
+      border: 1px dashed #ccc;
+      margin-top: 24px;
+    }
 
-        .loading-state i {
-            color: var(--gold);
-            font-size: 2.3rem;
-            margin-bottom: 15px;
-            animation: spin 1s linear infinite;
-        }
+    .loading-state i {
+      color: var(--gold);
+      font-size: 2.3rem;
+      margin-bottom: 15px;
+      animation: spin 1s linear infinite;
+    }
 
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        .charts-row {
-            display: none;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 18px;
-            margin-top: 24px;
-        }
+    /* ==== STABLE CHART LAYOUT ==== */
+    .charts-row {
+      display: none;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 24px;
+      align-items: stretch;
+    }
 
-        .chart-box {
-            background: white;
-            padding: 14px;
-            border-radius: 10px;
-            box-shadow: var(--soft-shadow);
-            height: 300px;
-            border: 1px solid #eee;
-        }
+    .chart-box {
+      background: white;
+      padding: 14px;
+      border-radius: 10px;
+      box-shadow: var(--soft-shadow);
+      border: 1px solid #eee;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      height: 340px;
+      min-height: 340px;
+      max-height: 340px;
+    }
 
-        .chart-title{
-            text-align:center;
-            font-size:13px;
-            font-weight:600;
-            color:#666;
-            margin:0 0 6px 0;
-            line-height:1.2;
-        }
+    .chart-title {
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: #666;
+      margin: 0;
+      line-height: 18px;
+      height: 18px;
+      min-height: 18px;
+      max-height: 18px;
+      flex: 0 0 18px;
+    }
 
-        .custom-legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px 10px;
-            justify-content: center;
-            font-size: 0.72rem;
-            padding-bottom: 6px;
-            max-height: 52px;
-            overflow-y: auto;
-        }
+    .custom-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 10px;
+      justify-content: center;
+      align-items: center;
+      font-size: 0.72rem;
+      line-height: 1.2;
+      overflow: hidden;
+    }
 
-        .custom-legend.species-under-title-legend{
-            display:flex;
-            flex-wrap:wrap;
-            justify-content:center;
-            align-items:center;
-            gap:4px 10px;
-            font-size:0.72rem;
-            padding-bottom:8px;
-            max-height:56px;
-            overflow-y:auto;
-            text-align:center;
-        }
+    .custom-legend.species-under-title-legend {
+      height: 44px;
+      min-height: 44px;
+      max-height: 44px;
+      flex: 0 0 44px;
+      padding: 4px 0 6px 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      text-align: center;
+      scrollbar-width: thin;
+    }
 
-        .custom-legend .legend-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            white-space: nowrap;
-        }
+    .custom-legend .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      max-width: 100%;
+    }
 
-        .custom-legend .legend-swatch {
-            width: 9px;
-            height: 9px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
+    .custom-legend .legend-swatch {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      flex: 0 0 9px;
+    }
 
-        .table-area { margin-top: 28px; display: none; }
+    /* ==== PATCH: dedicated canvas wrapper for reliable Chart.js sizing ==== */
+    .chart-canvas-wrap {
+      position: relative;
+      width: 100%;
+      height: 250px;
+      min-height: 250px;
+      max-height: 250px;
+      flex: 0 0 250px;
+    }
 
-        .summary-strip {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px;
-            margin-bottom: 16px;
-        }
+    /* Charts without title/legend fill the remaining space fully */
+    .chart-canvas-wrap--full {
+      height: 312px;
+      min-height: 312px;
+      max-height: 312px;
+      flex: 0 0 312px;
+    }
 
-        .summary-card {
-            background: white;
-            border: 1px solid #e5e5e5;
-            border-radius: 10px;
-            padding: 14px;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
-        }
+    .chart-box canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
 
-        .summary-card .label {
-            font-size: 0.75rem;
-            color: #666;
-            text-transform: uppercase;
-            font-weight: 700;
-        }
+    @media (max-width: 1150px) {
+      .search-row { grid-template-columns: 1fr 1fr; }
+      .btn-go { width: 100%; }
+      .charts-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
 
-        .summary-card .value {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--navy);
-            margin-top: 5px;
-        }
+    @media (max-width: 700px) {
+      .charts-row { grid-template-columns: 1fr; }
+    }
 
-        .table-header-box {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-        }
+    @media (max-width: 960px) {
+      .search-row { grid-template-columns: 1fr; }
+      .modal-grid { grid-template-columns: 1fr; }
+      .modal-card { width: 100%; padding: 20px; }
+      .m-row { flex-direction: column; gap: 6px; }
+      .m-lbl, .m-val { width: 100%; text-align: left; }
+      .inline-badges { justify-content: flex-start; }
+    }
 
-        .results-note { color: #666; font-size: 0.86rem; }
+    .table-area { margin-top: 28px; display: none; }
 
-        .btn-export {
-            background: var(--gold);
-            color: var(--navy);
-            border: none;
-            padding: 10px 18px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            cursor: pointer;
-        }
+    .summary-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
 
-        .btn-export:hover { filter: brightness(0.98); }
+    .summary-card {
+      background: white;
+      border: 1px solid #e5e5e5;
+      border-radius: 10px;
+      padding: 14px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+    }
 
-        .table-scroll {
-            background: white;
-            border-radius: 10px;
-            border: 1px solid #ddd;
-            max-height: 580px;
-            overflow-y: auto;
-            overflow-x: auto;
-            box-shadow: var(--soft-shadow);
-        }
+    .summary-card .label {
+      font-size: 0.75rem;
+      color: #666;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            min-width: 980px;
-        }
+    .summary-card .value {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-top: 5px;
+    }
 
-        th {
-            position: sticky;
-            top: 0;
-            background: #e8eaed;
-            padding: 12px;
-            font-size: 0.82rem;
-            color: var(--navy);
-            font-weight: 700;
-            border-bottom: 2px solid #ccc;
-            z-index: 10;
-        }
+    .table-header-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
 
-        td {
-            padding: 11px 12px;
-            border-bottom: 1px solid #eee;
-            font-size: 0.84rem;
-            vertical-align: middle;
-        }
+    .results-note { color: #666; font-size: 0.86rem; }
 
-        tr.result-row:hover td { background: #f0f9ff; cursor: pointer; }
+    .btn-export {
+      background: var(--gold);
+      color: var(--navy);
+      border: none;
+      padding: 10px 18px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
 
-        .badge {
-            padding: 4px 9px;
-            border-radius: 12px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            border: 1px solid #ccc;
-            display: inline-block;
-            line-height: 1.2;
-        }
+    .btn-export:hover { filter: brightness(0.98); }
 
-        .badge-blue { background: #e8f0fe; color: var(--navy); border-color: var(--navy); }
-        .badge-green { background: #e6f4ea; color: var(--green); border-color: var(--green); }
-        .badge-red { background: #fdecea; color: var(--red); border-color: var(--red); }
-        .badge-gray { background: #f0f0f0; color: #666; border-color: #bbb; }
-        .badge-gold { background: #fff8d6; color: #8a6d00; border-color: #e0c200; }
+    .table-scroll {
+      background: white;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      max-height: 580px;
+      overflow-y: auto;
+      overflow-x: auto;
+      box-shadow: var(--soft-shadow);
+    }
 
-        .score-high { color: var(--green); font-weight: 700; }
-        .score-mid { color: #c47f00; font-weight: 700; }
-        .score-low { color: var(--red); font-weight: 700; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      min-width: 980px;
+    }
 
-        .italic-text { font-style: italic; }
-        .species-cell i { font-style: italic; }
-        .muted { color: #777; }
+    th {
+      position: sticky;
+      top: 0;
+      background: #e8eaed;
+      padding: 12px;
+      font-size: 0.82rem;
+      color: var(--navy);
+      font-weight: 700;
+      border-bottom: 2px solid #ccc;
+      z-index: 10;
+    }
 
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.58);
-            z-index: 1000;
-            backdrop-filter: blur(3px);
-            overflow-y: auto;
-            padding: 24px;
-        }
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid #eee;
+      font-size: 0.84rem;
+      vertical-align: middle;
+    }
 
-        .modal.show {
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-        }
+    tr.result-row:hover td { background: #f0f9ff; cursor: pointer; }
 
-        .modal-card {
-            background: white;
-            width: 92%;
-            max-width: 860px;
-            border-radius: 12px;
-            padding: 28px;
-            border-top: 6px solid var(--gold);
-            position: relative;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            max-height: calc(100vh - 48px);
-            overflow-y: auto;
-            margin: auto;
-        }
+    .badge {
+      padding: 4px 9px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      border: 1px solid #ccc;
+      display: inline-block;
+      line-height: 1.2;
+    }
 
-        .close-btn {
-            position: sticky;
-            top: 0;
-            float: right;
-            margin-left: auto;
-            font-size: 1.4rem;
-            cursor: pointer;
-            color: #888;
-            background: white;
-            border-radius: 50%;
-            width: 34px;
-            height: 34px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #ddd;
-            z-index: 5;
-        }
+    .badge-blue { background: #e8f0fe; color: var(--navy); border-color: var(--navy); }
+    .badge-green { background: #e6f4ea; color: var(--green); border-color: var(--green); }
+    .badge-red { background: #fdecea; color: var(--red); border-color: var(--red); }
+    .badge-gray { background: #f0f0f0; color: #666; border-color: #bbb; }
+    .badge-gold { background: #fff8d6; color: #8a6d00; border-color: #e0c200; }
 
-        .close-btn:hover { color: var(--red); border-color: var(--red); }
+    .score-high { color: var(--green); font-weight: 700; }
+    .score-mid { color: #c47f00; font-weight: 700; }
+    .score-low { color: var(--red); font-weight: 700; }
 
-        .modal-title {
-            margin-top: 0;
-            color: var(--navy);
-            padding-right: 44px;
-            word-break: break-word;
-        }
+    .species-cell i { font-style: italic; }
+    .muted { color: #777; }
 
-        .modal-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 18px 24px;
-        }
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.58);
+      z-index: 1000;
+      backdrop-filter: blur(3px);
+      overflow-y: auto;
+      padding: 24px;
+    }
 
-        .m-section { min-width: 0; }
+    .modal.show {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
 
-        .m-section h4 {
-            margin: 0 0 10px 0;
-            color: var(--navy);
-            border-bottom: 1px solid #ececec;
-            padding-bottom: 6px;
-        }
+    .modal-card {
+      background: white;
+      width: 92%;
+      max-width: 860px;
+      border-radius: 12px;
+      padding: 28px;
+      border-top: 6px solid var(--gold);
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      max-height: calc(100vh - 48px);
+      overflow-y: auto;
+      margin: auto;
+    }
 
-        .m-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 16px;
-            margin-bottom: 8px;
-            border-bottom: 1px dashed #efefef;
-            padding-bottom: 6px;
-            align-items: flex-start;
-        }
+    .close-btn {
+      position: sticky;
+      top: 0;
+      float: right;
+      margin-left: auto;
+      font-size: 1.4rem;
+      cursor: pointer;
+      color: #888;
+      background: white;
+      border-radius: 50%;
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #ddd;
+      z-index: 5;
+    }
 
-        .m-lbl {
-            width: 42%;
-            font-size: 0.78rem;
-            color: #666;
-            text-transform: uppercase;
-            font-weight: 700;
-            flex-shrink: 0;
-        }
+    .close-btn:hover { color: var(--red); border-color: var(--red); }
 
-        .m-val {
-            width: 58%;
-            text-align: right;
-            font-size: 0.92rem;
-            color: #111;
-            word-break: break-word;
-        }
+    .modal-title {
+      margin-top: 0;
+      color: var(--navy);
+      padding-right: 44px;
+      word-break: break-word;
+    }
 
-        .inline-badges {
-            display: inline-flex;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-            gap: 6px;
-        }
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px 24px;
+    }
 
-        @media (max-width: 1150px) {
-            .search-row { grid-template-columns: 1fr 1fr; }
-            .btn-go { width: 100%; }
-        }
+    .m-section { min-width: 0; }
 
-        @media (max-width: 960px) {
-            .search-row { grid-template-columns: 1fr; }
-            .modal-grid { grid-template-columns: 1fr; }
-            .modal-card { width: 100%; padding: 20px; }
-            .m-row { flex-direction: column; gap: 6px; }
-            .m-lbl, .m-val { width: 100%; text-align: left; }
-            .inline-badges { justify-content: flex-start; }
-        }
-    </style>
+    .m-section h4 {
+      margin: 0 0 10px 0;
+      color: var(--navy);
+      border-bottom: 1px solid #ececec;
+      padding-bottom: 6px;
+    }
+
+    .m-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 8px;
+      border-bottom: 1px dashed #efefef;
+      padding-bottom: 6px;
+      align-items: flex-start;
+    }
+
+    .m-lbl {
+      width: 42%;
+      font-size: 0.78rem;
+      color: #666;
+      text-transform: uppercase;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .m-val {
+      width: 58%;
+      text-align: right;
+      font-size: 0.92rem;
+      color: #111;
+      word-break: break-word;
+    }
+
+    .inline-badges {
+      display: inline-flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+  </style>
 </head>
 <body>
 
 <header class="hero">
-    <div class="logo-ring"><i class="fas fa-circle-nodes"></i></div>
-    <h1>EVisionary</h1>
-    <p class="subtitle">Provenance-aware local exploration of harmonized extracellular-vesicles metadata</p>
+  <div class="logo-ring"><i class="fas fa-circle-nodes"></i></div>
+  <h1>EVisionary</h1>
+  <p class="subtitle">Provenance-aware local exploration of harmonized extracellular-vesicles metadata</p>
 </header>
 
 <div class="main-content">
-    <div class="search-panel">
-        <div class="search-row">
-            <div class="filter-wrap">
-                <input type="text" id="q" placeholder="Search identifier, disease, species, sample, molecule class, or source" aria-label="Search harmonized EV metadata" />
-                <div class="filter-note">Free-text search supports identifier, species, sample, disease, method, vesicle, source, and PMID matching.</div>
-            </div>
+  <div class="search-panel">
+    <div class="search-row">
+      <div class="filter-wrap">
+        <input type="text" id="q" placeholder="Search identifier, disease, species, sample, molecule class, or source" aria-label="Search harmonized EV metadata" />
+        <div class="filter-note">Free-text search supports identifier, species, sample, disease, method, vesicle, source, and PMID matching.</div>
+      </div>
 
-            <div class="filter-wrap" id="sourceFilterWrap">
-                <select id="sourceFilter" aria-label="Filter by source">
-                    <option value="">All sources</option>
-                </select>
-                <div class="filter-note" id="sourceFilterNote"></div>
-            </div>
+      <div class="filter-wrap">
+        <select id="sourceFilter" aria-label="Filter by source">
+          <option value="">All sources</option>
+        </select>
+        <div class="filter-note" id="sourceFilterNote"></div>
+      </div>
 
-            <div class="filter-wrap" id="speciesFilterWrap">
-                <select id="speciesFilter" aria-label="Filter by species">
-                    <option value="">All species</option>
-                </select>
-                <div class="filter-note" id="speciesFilterNote"></div>
-            </div>
+      <div class="filter-wrap">
+        <select id="speciesFilter" aria-label="Filter by species">
+          <option value="">All species</option>
+        </select>
+        <div class="filter-note" id="speciesFilterNote"></div>
+      </div>
 
-            <div class="filter-wrap" id="groupFilterWrap">
-                <select id="groupFilter" aria-label="Filter by molecule group">
-                    <option value="">All molecule groups</option>
-                </select>
-                <div class="filter-note" id="groupFilterNote"></div>
-            </div>
+      <div class="filter-wrap">
+        <select id="groupFilter" aria-label="Filter by molecule group">
+          <option value="">All molecule groups</option>
+        </select>
+        <div class="filter-note" id="groupFilterNote"></div>
+      </div>
 
-            <button class="btn-go" id="searchBtn" onclick="runSearch()">
-                <i class="fas fa-search"></i> Search
-            </button>
-        </div>
+      <button class="btn-go" id="searchBtn" onclick="runSearch()">
+        <i class="fas fa-search"></i> Search
+      </button>
+    </div>
+  </div>
+
+  <div id="loadingState" class="state-container loading-state">
+    <i class="fas fa-spinner"></i>
+    <h3>Searching harmonized EV metadata...</h3>
+    <p class="muted">Please wait while the local query is executed.</p>
+  </div>
+
+  <div id="emptyState" class="state-container">
+    <h3>No Records Found</h3>
+    <p id="emptyMsg">No harmonized EV records matched your query.</p>
+  </div>
+
+  <div id="dashboard" class="charts-row">
+    <div class="chart-box">
+      <div class="chart-title">Top Species in Retrieved Set</div>
+      <div id="speciesLegend" class="custom-legend species-under-title-legend"></div>
+      <div class="chart-canvas-wrap">
+        <canvas id="cSpecies"></canvas>
+      </div>
     </div>
 
-    <div id="loadingState" class="state-container loading-state">
-        <i class="fas fa-spinner"></i>
-        <h3>Searching harmonized EV metadata...</h3>
-        <p class="muted">Please wait while the local query is executed.</p>
+    <div class="chart-box">
+      <div class="chart-canvas-wrap chart-canvas-wrap--full">
+        <canvas id="cSource"></canvas>
+      </div>
     </div>
 
-    <div id="emptyState" class="state-container">
-        <h3>No Records Found</h3>
-        <p id="emptyMsg">No harmonized EV records matched your query.</p>
+    <div class="chart-box">
+      <div class="chart-canvas-wrap chart-canvas-wrap--full">
+        <canvas id="cScore"></canvas>
+      </div>
     </div>
 
-    <div id="dashboard" class="charts-row">
-        <div class="chart-box">
-            <div class="chart-title">Top Species in Retrieved Set</div>
-            <div id="speciesLegend" class="custom-legend species-under-title-legend"></div>
-            <canvas id="cSpecies"></canvas>
-        </div>
-        <div class="chart-box"><canvas id="cSource"></canvas></div>
-        <div class="chart-box"><canvas id="cScore"></canvas></div>
-        <div class="chart-box"><canvas id="cGroup"></canvas></div>
+    <div class="chart-box">
+      <div class="chart-canvas-wrap chart-canvas-wrap--full">
+        <canvas id="cGroup"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div id="results" class="table-area">
+    <div class="summary-strip">
+      <div class="summary-card"><div class="label">Retrieved records</div><div class="value" id="sumCount">0</div></div>
+      <div class="summary-card"><div class="label">Mean utility score</div><div class="value" id="sumUtility">0.000</div></div>
+      <div class="summary-card"><div class="label">Discrepant raw→norm rows</div><div class="value" id="sumDisc">0</div></div>
+      <div class="summary-card"><div class="label">Unique PMIDs</div><div class="value" id="sumPMID">0</div></div>
     </div>
 
-    <div id="results" class="table-area">
-        <div class="summary-strip">
-            <div class="summary-card"><div class="label">Retrieved records</div><div class="value" id="sumCount">0</div></div>
-            <div class="summary-card"><div class="label">Mean utility score</div><div class="value" id="sumUtility">0.000</div></div>
-            <div class="summary-card"><div class="label">Discrepant raw→norm rows</div><div class="value" id="sumDisc">0</div></div>
-            <div class="summary-card"><div class="label">Unique PMIDs</div><div class="value" id="sumPMID">0</div></div>
-        </div>
-
-        <div class="table-header-box">
-            <div>
-                <h3 style="color:var(--navy); margin:0 0 4px 0;"><i class="fas fa-database"></i> Retrieved Records</h3>
-                <div class="results-note" id="resultsNote">Click a row to inspect provenance and harmonization details.</div>
-            </div>
-            <button class="btn-export" onclick="doExport()"><i class="fas fa-file-csv"></i> Export Data</button>
-        </div>
-
-        <div class="table-scroll">
-            <table id="mainTable">
-                <thead>
-                    <tr>
-                        <th>Type</th>
-                        <th>Identifier</th>
-                        <th>Species</th>
-                        <th>Disease / Condition</th>
-                        <th>Method Label</th>
-                        <th>Source</th>
-                        <th>Utility Score</th>
-                        <th>Rank</th>
-                        <th>Audit Flags</th>
-                        <th>Year</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
+    <div class="table-header-box">
+      <div>
+        <h3 style="color:var(--navy); margin:0 0 4px 0;"><i class="fas fa-database"></i> Retrieved Records</h3>
+        <div class="results-note" id="resultsNote">Click a row to inspect provenance and harmonization details.</div>
+      </div>
+      <button class="btn-export" onclick="doExport()"><i class="fas fa-file-csv"></i> Export Data</button>
     </div>
+
+    <div class="table-scroll">
+      <table id="mainTable">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Identifier</th>
+            <th>Species</th>
+            <th>Disease / Condition</th>
+            <th>Method Label</th>
+            <th>Source</th>
+            <th>Utility Score</th>
+            <th>Rank</th>
+            <th>Audit Flags</th>
+            <th>Year</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <div id="modal" class="modal" onclick="if(event.target.id==='modal') closeModal()">
-    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="m-title">
-        <button class="close-btn" type="button" onclick="closeModal()" aria-label="Close details modal">&times;</button>
-        <h2 id="m-title" class="modal-title">Record Details</h2>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="m-title">
+    <button class="close-btn" type="button" onclick="closeModal()" aria-label="Close details modal">&times;</button>
+    <h2 id="m-title" class="modal-title">Record Details</h2>
 
-        <div class="modal-grid">
-            <div class="m-section">
-                <h4>Core Metadata</h4>
-                <div class="m-row"><span class="m-lbl">Record UID</span><span class="m-val" id="m-record"></span></div>
-                <div class="m-row"><span class="m-lbl">Source Row UID</span><span class="m-val" id="m-source-row"></span></div>
-                <div class="m-row"><span class="m-lbl">Pre-dedup UID</span><span class="m-val" id="m-pre"></span></div>
-                <div class="m-row"><span class="m-lbl">Source</span><span class="m-val" id="m-source"></span></div>
-                <div class="m-row"><span class="m-lbl">Year</span><span class="m-val" id="m-year"></span></div>
-                <div class="m-row"><span class="m-lbl">PMID</span><span class="m-val" id="m-pmid"></span></div>
-            </div>
+    <div class="modal-grid">
+      <div class="m-section">
+        <h4>Core Metadata</h4>
+        <div class="m-row"><span class="m-lbl">Record UID</span><span class="m-val" id="m-record"></span></div>
+        <div class="m-row"><span class="m-lbl">Source Row UID</span><span class="m-val" id="m-source-row"></span></div>
+        <div class="m-row"><span class="m-lbl">Pre-dedup UID</span><span class="m-val" id="m-pre"></span></div>
+        <div class="m-row"><span class="m-lbl">Source</span><span class="m-val" id="m-source"></span></div>
+        <div class="m-row"><span class="m-lbl">Year</span><span class="m-val" id="m-year"></span></div>
+        <div class="m-row"><span class="m-lbl">PMID</span><span class="m-val" id="m-pmid"></span></div>
+      </div>
 
-            <div class="m-section">
-                <h4>Molecular Annotation Audit</h4>
-                <div class="m-row"><span class="m-lbl">Identifier</span><span class="m-val" id="m-id"></span></div>
-                <div class="m-row"><span class="m-lbl">Raw Molecule Type</span><span class="m-val" id="m-type-raw"></span></div>
-                <div class="m-row"><span class="m-lbl">Normalized Type</span><span class="m-val" id="m-type-norm"></span></div>
-                <div class="m-row"><span class="m-lbl">Grouped Type</span><span class="m-val" id="m-type-group"></span></div>
-                <div class="m-row"><span class="m-lbl">Exported Type</span><span class="m-val" id="m-type"></span></div>
-                <div class="m-row"><span class="m-lbl">Discrepancy Flags</span><span class="m-val" id="m-disc"></span></div>
-            </div>
+      <div class="m-section">
+        <h4>Molecular Annotation Audit</h4>
+        <div class="m-row"><span class="m-lbl">Identifier</span><span class="m-val" id="m-id"></span></div>
+        <div class="m-row"><span class="m-lbl">Raw Molecule Type</span><span class="m-val" id="m-type-raw"></span></div>
+        <div class="m-row"><span class="m-lbl">Normalized Type</span><span class="m-val" id="m-type-norm"></span></div>
+        <div class="m-row"><span class="m-lbl">Grouped Type</span><span class="m-val" id="m-type-group"></span></div>
+        <div class="m-row"><span class="m-lbl">Exported Type</span><span class="m-val" id="m-type"></span></div>
+        <div class="m-row"><span class="m-lbl">Discrepancy Flags</span><span class="m-val" id="m-disc"></span></div>
+      </div>
 
-            <div class="m-section">
-                <h4>Context Metadata</h4>
-                <div class="m-row"><span class="m-lbl">Species</span><span class="m-val" id="m-species"></span></div>
-                <div class="m-row"><span class="m-lbl">Sample / Source</span><span class="m-val" id="m-sample"></span></div>
-                <div class="m-row"><span class="m-lbl">Disease</span><span class="m-val" id="m-disease"></span></div>
-                <div class="m-row"><span class="m-lbl">Method Label</span><span class="m-val" id="m-method"></span></div>
-                <div class="m-row"><span class="m-lbl">Vesicle Annotation</span><span class="m-val" id="m-vesicle"></span></div>
-                <div class="m-row"><span class="m-lbl">Characterization Field</span><span class="m-val" id="m-char"></span></div>
-            </div>
+      <div class="m-section">
+        <h4>Context Metadata</h4>
+        <div class="m-row"><span class="m-lbl">Species</span><span class="m-val" id="m-species"></span></div>
+        <div class="m-row"><span class="m-lbl">Sample / Source</span><span class="m-val" id="m-sample"></span></div>
+        <div class="m-row"><span class="m-lbl">Disease</span><span class="m-val" id="m-disease"></span></div>
+        <div class="m-row"><span class="m-lbl">Method Label</span><span class="m-val" id="m-method"></span></div>
+        <div class="m-row"><span class="m-lbl">Vesicle Annotation</span><span class="m-val" id="m-vesicle"></span></div>
+        <div class="m-row"><span class="m-lbl">Characterization Field</span><span class="m-val" id="m-char"></span></div>
+      </div>
 
-            <div class="m-section">
-                <h4>Utility / Retrieval</h4>
-                <div class="m-row"><span class="m-lbl">Metadata Utility Score</span><span class="m-val" id="m-utility"></span></div>
-                <div class="m-row"><span class="m-lbl">Score Band</span><span class="m-val" id="m-band"></span></div>
-                <div class="m-row"><span class="m-lbl">Retrieval Rank Score</span><span class="m-val" id="m-rank"></span></div>
-                <div class="m-row"><span class="m-lbl">EV-METRIC</span><span class="m-val" id="m-metric"></span></div>
-            </div>
-        </div>
+      <div class="m-section">
+        <h4>Utility / Retrieval</h4>
+        <div class="m-row"><span class="m-lbl">Metadata Utility Score</span><span class="m-val" id="m-utility"></span></div>
+        <div class="m-row"><span class="m-lbl">Score Band</span><span class="m-val" id="m-band"></span></div>
+        <div class="m-row"><span class="m-lbl">Retrieval Rank Score</span><span class="m-val" id="m-rank"></span></div>
+        <div class="m-row"><span class="m-lbl">EV-METRIC</span><span class="m-val" id="m-metric"></span></div>
+      </div>
     </div>
+  </div>
 </div>
 
 <script>
-let currentData = [];
-let chartSpecies = null;
-let chartSource = null;
-let chartScore = null;
-let chartGroup = null;
+  let currentData = [];
+  let chartSpecies = null, chartSource = null, chartScore = null, chartGroup = null;
 
-const KNOWN_SCIENTIFIC = new Set([
+  const KNOWN_SCIENTIFIC = new Set([
     "Homo sapiens","Mus musculus","Rattus norvegicus","Bos taurus","Sus scrofa",
     "Drosophila melanogaster","Canis lupus familiaris","Escherichia coli","Ovis aries",
     "Equus caballus","Gallus gallus","Pseudomonas aeruginosa","Neisseria meningitidis",
     "Staphylococcus aureus","Porphyromonas gingivalis","Acinetobacter baumannii",
     "Salmonella enterica","Helicobacter pylori","Vibrio cholerae"
-]);
+  ]);
 
-function safeText(value, fallback = "Unknown") {
+  function safeText(value, fallback = "Unknown") {
     if (value === null || value === undefined) return fallback;
     const text = String(value).trim();
     return text === "" ? fallback : text;
-}
+  }
 
-function escapeHtml(text) {
+  function escapeHtml(text) {
     return String(text ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-}
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
 
-function speciesToHtmlFallback(val) {
+  function speciesToHtmlFallback(val) {
     const text = safeText(val);
     if (text === "Unknown") return "Unknown";
     return text.split("|").map(p => {
-        const t = p.trim();
-        return KNOWN_SCIENTIFIC.has(t) ? `<i>${escapeHtml(t)}</i>` : escapeHtml(t);
+      const t = p.trim();
+      return KNOWN_SCIENTIFIC.has(t) ? `<i>${escapeHtml(t)}</i>` : escapeHtml(t);
     }).join(" | ");
-}
+  }
 
-function renderSpeciesHtml(r) {
+  function renderSpeciesHtml(r) {
     return r.species_html || speciesToHtmlFallback(r.species);
-}
+  }
 
-function speciesLabelToLegendHtml(label) {
+  function speciesLabelToLegendHtml(label) {
     return String(label).split("|").map(p => {
-        const t = p.trim();
-        return KNOWN_SCIENTIFIC.has(t) ? `<i>${escapeHtml(t)}</i>` : escapeHtml(t);
+      const t = p.trim();
+      return KNOWN_SCIENTIFIC.has(t) ? `<i>${escapeHtml(t)}</i>` : escapeHtml(t);
     }).join(" | ");
-}
+  }
 
-function renderCustomSpeciesLegend(containerId, labels, values, colors) {
+  function renderCustomSpeciesLegend(containerId, labels, values, colors) {
     const container = document.getElementById(containerId);
     if (!container) return;
     container.innerHTML = labels.map((lbl, i) => `
-        <span class="legend-item">
-            <span class="legend-swatch" style="background:${colors[i]}"></span>
-            ${speciesLabelToLegendHtml(lbl)} (${values[i]})
-        </span>
+      <span class="legend-item">
+        <span class="legend-swatch" style="background:${colors[i]}"></span>
+        ${speciesLabelToLegendHtml(lbl)} (${values[i]})
+      </span>
     `).join("");
-}
+  }
 
-function clearDynamicOptions(selectEl) {
+  function clearDynamicOptions(selectEl) {
     while (selectEl.options.length > 1) selectEl.remove(1);
-}
+  }
 
-function configureFilter(selectId, noteId, values, defaultLabel, singleLabel, emptyLabel) {
+  function configureFilter(selectId, noteId, values, defaultLabel, singleLabel, emptyLabel) {
     const selectEl = document.getElementById(selectId);
     const noteEl = document.getElementById(noteId);
     clearDynamicOptions(selectEl);
     const items = values || [];
 
     if (items.length > 1) {
-        selectEl.disabled = false;
-        selectEl.options[0].text = defaultLabel;
-        selectEl.value = "";
-        noteEl.textContent = "";
-        items.forEach(v => {
-            const opt = document.createElement("option");
-            opt.value = v;
-            opt.textContent = v;
-            selectEl.appendChild(opt);
-        });
-        return;
+      selectEl.disabled = false;
+      selectEl.options[0].text = defaultLabel;
+      selectEl.value = "";
+      noteEl.textContent = "";
+      items.forEach(v => {
+        const opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = v;
+        selectEl.appendChild(opt);
+      });
+      return;
     }
-
     if (items.length === 1) {
-        selectEl.disabled = true;
-        selectEl.value = "";
-        selectEl.options[0].text = `${singleLabel}: ${items[0]}`;
-        noteEl.textContent = "";
-        return;
+      selectEl.disabled = true;
+      selectEl.value = "";
+      selectEl.options[0].text = `${singleLabel}: ${items[0]}`;
+      noteEl.textContent = "";
+      return;
     }
-
     selectEl.disabled = true;
     selectEl.value = "";
     selectEl.options[0].text = emptyLabel;
     noteEl.textContent = "";
-}
+  }
 
-async function loadFilters() {
+  async function loadFilters() {
     try {
-        const res = await fetch("/filters");
-        const data = await res.json();
-
-        configureFilter("sourceFilter","sourceFilterNote", data.sources || [], "All sources","Only one source available","No source options available");
-        configureFilter("speciesFilter","speciesFilterNote", data.species || [], "All species","Only one species available","No species options available");
-        configureFilter("groupFilter","groupFilterNote", data.molecule_groups || [], "All molecule groups","Only one group available","No molecule-group options available");
+      const res = await fetch("/filters");
+      const data = await res.json();
+      configureFilter("sourceFilter","sourceFilterNote", data.sources || [], "All sources","Only one source available","No source options available");
+      configureFilter("speciesFilter","speciesFilterNote", data.species || [], "All species","Only one species available","No species options available");
+      configureFilter("groupFilter","groupFilterNote", data.molecule_groups || [], "All molecule groups","Only one group available","No molecule-group options available");
     } catch (e) {
-        console.error("Failed to load filters:", e);
-        configureFilter("sourceFilter","sourceFilterNote", [], "All sources","Only one source available","No source options available");
-        configureFilter("speciesFilter","speciesFilterNote", [], "All species","Only one species available","No species options available");
-        configureFilter("groupFilter","groupFilterNote", [], "All molecule groups","Only one group available","No molecule-group options available");
+      console.error("Failed to load filters:", e);
     }
-}
+  }
 
-function hideStates() {
+  function hideStates() {
     document.getElementById("dashboard").style.display = "none";
     document.getElementById("results").style.display = "none";
     document.getElementById("emptyState").style.display = "none";
     document.getElementById("loadingState").style.display = "none";
-}
+  }
 
-function setSearchingState(isSearching) {
+  function setSearchingState(isSearching) {
     const btn = document.getElementById("searchBtn");
     btn.disabled = isSearching;
     btn.innerHTML = isSearching ? '<i class="fas fa-spinner fa-spin"></i> Searching' : '<i class="fas fa-search"></i> Search';
-}
+  }
 
-async function runSearch() {
+  async function runSearch() {
     const q = document.getElementById("q").value.trim();
     const sourceEl = document.getElementById("sourceFilter");
     const speciesEl = document.getElementById("speciesFilter");
@@ -760,34 +810,34 @@ async function runSearch() {
     const params = new URLSearchParams({ q, source, species, molecule_group: group, limit: 500 });
 
     try {
-        const res = await fetch(`/search?${params.toString()}`);
-        const data = await res.json();
-        currentData = Array.isArray(data) ? data : [];
-        hideStates();
+      const res = await fetch(`/search?${params.toString()}`);
+      const data = await res.json();
+      currentData = Array.isArray(data) ? data : [];
+      hideStates();
 
-        if (currentData.length > 0) {
-            renderSummary(currentData);
-            renderCharts(currentData);
-            renderTable(currentData);
-            document.getElementById("results").style.display = "block";
-            document.getElementById("dashboard").style.display = "grid";
-        } else {
-            document.getElementById("emptyState").style.display = "block";
-            document.getElementById("emptyMsg").innerHTML = "No harmonized EV records matched the selected query/filter combination.";
-            destroyAllCharts();
-        }
-    } catch (e) {
-        console.error("Search failed:", e);
-        hideStates();
+      if (currentData.length > 0) {
+        renderSummary(currentData);
+        renderCharts(currentData);
+        renderTable(currentData);
+        document.getElementById("results").style.display = "block";
+        document.getElementById("dashboard").style.display = "grid";
+      } else {
         document.getElementById("emptyState").style.display = "block";
-        document.getElementById("emptyMsg").innerHTML = "An internal server error occurred while searching. Please try again.";
+        document.getElementById("emptyMsg").innerHTML = "No harmonized EV records matched the selected query/filter combination.";
         destroyAllCharts();
+      }
+    } catch (e) {
+      console.error("Search failed:", e);
+      hideStates();
+      document.getElementById("emptyState").style.display = "block";
+      document.getElementById("emptyMsg").innerHTML = "An internal server error occurred while searching. Please try again.";
+      destroyAllCharts();
     } finally {
-        setSearchingState(false);
+      setSearchingState(false);
     }
-}
+  }
 
-function renderSummary(data) {
+  function renderSummary(data) {
     const meanUtility = data.reduce((a, b) => a + (Number(b.metadata_utility_score) || 0), 0) / data.length;
     const discrepant = data.filter(d => Number(d.raw_norm_discrepant) === 1).length;
     const pmids = new Set(data.map(d => safeText(d.pmid)).filter(p => p !== "Unknown"));
@@ -796,75 +846,67 @@ function renderSummary(data) {
     document.getElementById("sumUtility").innerText = meanUtility.toFixed(3);
     document.getElementById("sumDisc").innerText = discrepant.toLocaleString();
     document.getElementById("sumPMID").innerText = pmids.size.toLocaleString();
-    document.getElementById("resultsNote").innerText = "Displaying up to 500 ranked results. Click a row to inspect provenance and harmonization details.";
-}
+  }
 
-function renderTable(data) {
-    const tbody = document.querySelector("#mainTable tbody");
-    tbody.innerHTML = "";
-
-    data.forEach(r => {
-        const tr = document.createElement("tr");
-        tr.className = "result-row";
-        tr.addEventListener("click", () => showModal(r));
-
-        const sourceBadge = sourceBadgeHtml(safeText(r.source));
-        const scoreClass = scoreClassName(r.metadata_utility_score);
-        const auditFlags = buildAuditFlags(r);
-
-        tr.innerHTML = `
-            <td><span class="badge badge-gray">${escapeHtml(safeText(r.type))}</span></td>
-            <td>${escapeHtml(safeText(r.name))}</td>
-            <td class="species-cell">${renderSpeciesHtml(r)}</td>
-            <td>${escapeHtml(safeText(r.disease))}</td>
-            <td>${escapeHtml(safeText(r.method))}</td>
-            <td>${sourceBadge}</td>
-            <td class="${scoreClass}">
-                ${Number(r.metadata_utility_score || 0).toFixed(3)}
-                <br><span style="font-size:0.72rem;">${escapeHtml(safeText(r.metadata_score_band))}</span>
-            </td>
-            <td>${Number(r.retrieval_rank_score || 0).toFixed(3)}</td>
-            <td>${auditFlags}</td>
-            <td>${escapeHtml(safeText(r.year))}</td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-function sourceBadgeHtml(source) {
+  function sourceBadgeHtml(source) {
     if (source === "EV-TRACK") return `<span class="badge badge-green">${escapeHtml(source)}</span>`;
     if (source === "Vesiclepedia" || source === "ExoCarta") return `<span class="badge badge-blue">${escapeHtml(source)}</span>`;
     return `<span class="badge badge-gray">${escapeHtml(source)}</span>`;
-}
+  }
 
-function buildAuditFlags(r) {
+  function buildAuditFlags(r) {
     const flags = [];
     if (Number(r.raw_norm_discrepant) === 1) flags.push(`<span class="badge badge-red">raw→norm</span>`);
     if (Number(r.norm_alias_discrepant) === 1) flags.push(`<span class="badge badge-gold">norm→alias</span>`);
-    if (flags.length === 0) flags.push(`<span class="badge badge-gray">none</span>`);
+    if (!flags.length) flags.push(`<span class="badge badge-gray">none</span>`);
     return flags.join(" ");
-}
+  }
 
-function scoreClassName(score) {
+  function scoreClassName(score) {
     score = Number(score || 0);
     if (score >= 0.75) return "score-high";
     if (score >= 0.5) return "score-mid";
     return "score-low";
-}
+  }
 
-function openModal() {
-    const modal = document.getElementById("modal");
-    modal.classList.add("show");
+  function renderTable(data) {
+    const tbody = document.querySelector("#mainTable tbody");
+    tbody.innerHTML = "";
+    data.forEach(r => {
+      const tr = document.createElement("tr");
+      tr.className = "result-row";
+      tr.addEventListener("click", () => showModal(r));
+
+      tr.innerHTML = `
+        <td><span class="badge badge-gray">${escapeHtml(safeText(r.type))}</span></td>
+        <td>${escapeHtml(safeText(r.name))}</td>
+        <td class="species-cell">${renderSpeciesHtml(r)}</td>
+        <td>${escapeHtml(safeText(r.disease))}</td>
+        <td>${escapeHtml(safeText(r.method))}</td>
+        <td>${sourceBadgeHtml(safeText(r.source))}</td>
+        <td class="${scoreClassName(r.metadata_utility_score)}">
+          ${Number(r.metadata_utility_score || 0).toFixed(3)}
+          <br><span style="font-size:0.72rem;">${escapeHtml(safeText(r.metadata_score_band))}</span>
+        </td>
+        <td>${Number(r.retrieval_rank_score || 0).toFixed(3)}</td>
+        <td>${buildAuditFlags(r)}</td>
+        <td>${escapeHtml(safeText(r.year))}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function openModal() {
+    document.getElementById("modal").classList.add("show");
     document.body.classList.add("modal-open");
-}
+  }
 
-function closeModal() {
-    const modal = document.getElementById("modal");
-    modal.classList.remove("show");
+  function closeModal() {
+    document.getElementById("modal").classList.remove("show");
     document.body.classList.remove("modal-open");
-}
+  }
 
-function showModal(r) {
+  function showModal(r) {
     document.getElementById("m-title").innerText = `${safeText(r.name)} (${safeText(r.type)})`;
     document.getElementById("m-record").innerText = safeText(r.record_uid);
     document.getElementById("m-source-row").innerText = safeText(r.source_row_uid);
@@ -887,108 +929,111 @@ function showModal(r) {
     document.getElementById("m-rank").innerText = Number(r.retrieval_rank_score || 0).toFixed(3);
     document.getElementById("m-metric").innerText = safeText(r.ev_metric);
 
-    const discContainer = document.getElementById("m-disc");
-    let discHtml = [];
-    if (Number(r.raw_norm_discrepant) === 1) discHtml.push('<span class="badge badge-red">raw→norm discrepancy</span>');
-    if (Number(r.norm_alias_discrepant) === 1) discHtml.push('<span class="badge badge-gold">norm→alias discrepancy</span>');
-    if (discHtml.length === 0) discHtml.push('<span class="badge badge-gray">none</span>');
-    discContainer.innerHTML = `<span class="inline-badges">${discHtml.join(" ")}</span>`;
+    const disc = [];
+    if (Number(r.raw_norm_discrepant) === 1) disc.push('<span class="badge badge-red">raw→norm discrepancy</span>');
+    if (Number(r.norm_alias_discrepant) === 1) disc.push('<span class="badge badge-gold">norm→alias discrepancy</span>');
+    if (!disc.length) disc.push('<span class="badge badge-gray">none</span>');
+    document.getElementById("m-disc").innerHTML = `<span class="inline-badges">${disc.join(" ")}</span>`;
 
     const pmid = safeText(r.pmid);
     document.getElementById("m-pmid").innerHTML =
-        pmid !== "Unknown"
-            ? `<a href="https://pubmed.ncbi.nlm.nih.gov/${encodeURIComponent(pmid)}" target="_blank" rel="noopener noreferrer" style="color:#1f4e79;text-decoration:underline;">PubMed: ${escapeHtml(pmid)}</a>`
-            : "Unknown";
+      pmid !== "Unknown"
+        ? `<a href="https://pubmed.ncbi.nlm.nih.gov/${encodeURIComponent(pmid)}" target="_blank" rel="noopener noreferrer" style="color:#1f4e79;text-decoration:underline;">PubMed: ${escapeHtml(pmid)}</a>`
+        : "Unknown";
 
     openModal();
-}
+  }
 
-function destroyAllCharts() {
+  function destroyAllCharts() {
     if (chartSpecies) { chartSpecies.destroy(); chartSpecies = null; }
     if (chartSource) { chartSource.destroy(); chartSource = null; }
     if (chartScore) { chartScore.destroy(); chartScore = null; }
     if (chartGroup) { chartGroup.destroy(); chartGroup = null; }
     const legendEl = document.getElementById("speciesLegend");
     if (legendEl) legendEl.innerHTML = "";
-}
+  }
 
-function makeChart(canvasId, type, dataMap, title, topN, colors, customLegendId = null) {
+  function makeChart(canvasId, type, dataMap, title, topN, colors, customLegendId = null) {
     let entries = Object.entries(dataMap).sort((a, b) => b[1] - a[1]);
     if (topN) entries = entries.slice(0, topN);
 
     const labels = entries.map(x => x[0]);
     const values = entries.map(x => x[1]);
-    const chartColors = colors.length === 1 ? Array(values.length).fill(colors[0]) : labels.map((_, i) => colors[i % colors.length]);
+    const chartColors = colors.length === 1
+      ? Array(values.length).fill(colors[0])
+      : labels.map((_, i) => colors[i % colors.length]);
 
     const chart = new Chart(document.getElementById(canvasId), {
-        type,
-        data: { labels, datasets: [{ data: values, backgroundColor: chartColors }] },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: !customLegendId },
-                title: { display: !!title, text: title || "" }
-            },
-            scales: type === "bar" ? { y: { beginAtZero: true } } : {}
-        }
+      type,
+      data: { labels, datasets: [{ data: values, backgroundColor: chartColors }] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        resizeDelay: 200,
+        animation: false,
+        layout: { padding: { top: 4, right: 6, bottom: 4, left: 6 } },
+        plugins: {
+          legend: { display: !customLegendId },
+          title: {
+            display: !!title,
+            text: title || "",
+            padding: { top: 2, bottom: 8 }
+          }
+        },
+        scales: type === "bar"
+          ? { y: { beginAtZero: true, ticks: { precision: 0 } } }
+          : {}
+      }
     });
 
     if (customLegendId) renderCustomSpeciesLegend(customLegendId, labels, values, chartColors);
     return chart;
-}
+  }
 
-function renderCharts(data) {
+  function renderCharts(data) {
     destroyAllCharts();
-
     const speciesMap = {}, sourceMap = {}, scoreBandMap = {}, groupMap = {};
 
     data.forEach(d => {
-        const species = safeText(d.species);
-        const source = safeText(d.source);
-        const band = safeText(d.metadata_score_band);
-        const group = safeText(d.type_group);
+      const species = safeText(d.species);
+      const source = safeText(d.source);
+      const band = safeText(d.metadata_score_band);
+      const group = safeText(d.type_group);
 
-        speciesMap[species] = (speciesMap[species] || 0) + 1;
-        sourceMap[source] = (sourceMap[source] || 0) + 1;
-        scoreBandMap[band] = (scoreBandMap[band] || 0) + 1;
-        groupMap[group] = (groupMap[group] || 0) + 1;
+      speciesMap[species] = (speciesMap[species] || 0) + 1;
+      sourceMap[source] = (sourceMap[source] || 0) + 1;
+      scoreBandMap[band] = (scoreBandMap[band] || 0) + 1;
+      groupMap[group] = (groupMap[group] || 0) + 1;
     });
 
-    chartSpecies = makeChart(
-        "cSpecies", "doughnut", speciesMap, null, 5,
-        ["#1f4e79", "#228B22", "#c9d6df", "#95a5a6", "#dfe6e9"],
-        "speciesLegend"
-    );
+    chartSpecies = makeChart("cSpecies", "doughnut", speciesMap, null, 5, ["#1f4e79", "#228B22", "#c9d6df", "#95a5a6", "#dfe6e9"], "speciesLegend");
     chartSource  = makeChart("cSource", "pie", sourceMap, "Source Distribution", null, ["#1f4e79", "#228B22", "#95a5a6", "#d4d8dd"]);
     chartScore   = makeChart("cScore", "bar", scoreBandMap, "Metadata Score Bands", null, ["#228B22", "#f1c40f", "#e67e22", "#c0392b"]);
     chartGroup   = makeChart("cGroup", "bar", groupMap, "Molecule Groups in Retrieved Set", 6, ["#1f4e79"]);
-}
+  }
 
-function doExport() {
+  function doExport() {
     if (!currentData.length) { alert("No data to export."); return; }
 
     const header = [
-        "record_uid","source_row_uid","pre_dedup_uid","source","working_id",
-        "molecule_type_raw","molecule_type_norm","molecule_type_group","molecule_type",
-        "species","sample_name","disease","method","vesicle","year","pmid",
-        "metadata_utility_score","metadata_score_band","retrieval_rank_score",
-        "raw_norm_discrepant","norm_alias_discrepant"
+      "record_uid","source_row_uid","pre_dedup_uid","source","working_id",
+      "molecule_type_raw","molecule_type_norm","molecule_type_group","molecule_type",
+      "species","sample_name","disease","method","vesicle","year","pmid",
+      "metadata_utility_score","metadata_score_band","retrieval_rank_score",
+      "raw_norm_discrepant","norm_alias_discrepant"
     ];
 
     let csv = header.join(",") + "\n";
-
     currentData.forEach(r => {
-        const vals = [
-            safeText(r.record_uid), safeText(r.source_row_uid), safeText(r.pre_dedup_uid), safeText(r.source),
-            safeText(r.name), safeText(r.type_raw), safeText(r.type_norm), safeText(r.type_group), safeText(r.type),
-            safeText(r.species), safeText(r.sample), safeText(r.disease), safeText(r.method), safeText(r.vesicle),
-            safeText(r.year), safeText(r.pmid), Number(r.metadata_utility_score || 0).toFixed(3),
-            safeText(r.metadata_score_band), Number(r.retrieval_rank_score || 0).toFixed(3),
-            Number(r.raw_norm_discrepant || 0), Number(r.norm_alias_discrepant || 0)
-        ].map(v => `"${String(v).replace(/"/g, '""')}"`);
-
-        csv += vals.join(",") + "\n";
+      const vals = [
+        safeText(r.record_uid), safeText(r.source_row_uid), safeText(r.pre_dedup_uid), safeText(r.source),
+        safeText(r.name), safeText(r.type_raw), safeText(r.type_norm), safeText(r.type_group), safeText(r.type),
+        safeText(r.species), safeText(r.sample), safeText(r.disease), safeText(r.method), safeText(r.vesicle),
+        safeText(r.year), safeText(r.pmid), Number(r.metadata_utility_score || 0).toFixed(3),
+        safeText(r.metadata_score_band), Number(r.retrieval_rank_score || 0).toFixed(3),
+        Number(r.raw_norm_discrepant || 0), Number(r.norm_alias_discrepant || 0)
+      ].map(v => `"${String(v).replace(/"/g, '""')}"`);
+      csv += vals.join(",") + "\n";
     });
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -1000,17 +1045,17 @@ function doExport() {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
-}
+  }
 
-document.getElementById("q").addEventListener("keypress", e => {
+  document.getElementById("q").addEventListener("keypress", e => {
     if (e.key === "Enter") runSearch();
-});
+  });
 
-document.addEventListener("keydown", e => {
+  document.addEventListener("keydown", e => {
     if (e.key === "Escape") closeModal();
-});
+  });
 
-loadFilters();
+  loadFilters();
 </script>
 </body>
 </html>
