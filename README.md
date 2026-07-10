@@ -531,4 +531,3 @@ To report bugs or technical issues, please use the [Issue Tracker](https://githu
 <p align="center">
   <img src="https://capsule-render.vercel.app/api?type=rect&height=35&color=0:1f4e79,55:228B22,100:DAA520&section=footer" alt="EVisionary footer" />
 </p>
-```
