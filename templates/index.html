@@ -69,8 +69,12 @@
         }
 
         @keyframes sun-glow {
-            0% { box-shadow: 0 0 15px rgba(255,215,0,0.4), inset 0 0 10px rgba(255,215,0,0.4); }
-            100% { box-shadow: 0 0 35px rgba(255,215,0,1), inset 0 0 20px rgba(255,215,0,0.8); }
+            0% {
+                box-shadow: 0 0 15px rgba(255,215,0,0.4), inset 0 0 10px rgba(255,215,0,0.4);
+            }
+            100% {
+                box-shadow: 0 0 35px rgba(255,215,0,1), inset 0 0 20px rgba(255,215,0,0.8);
+            }
         }
 
         h1 {
@@ -181,7 +185,9 @@
         }
 
         @keyframes spin {
-            100% { transform: rotate(360deg); }
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .charts-row {
@@ -200,6 +206,35 @@
             border: 1px solid #eee;
         }
 
+<<<<<<< HEAD
+        /* Species chart: custom HTML legend beside the chart, allowing italic species names. */
+        .species-chart-box {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 120px;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .species-chart-canvas {
+            position: relative;
+            min-width: 0;
+            height: 100%;
+        }
+
+        .custom-legend {
+            font-size: 0.72rem;
+        }
+
+        .species-side-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            justify-content: center;
+            align-items: flex-start;
+            max-height: 250px;
+            overflow-y: auto;
+            padding-left: 4px;
+=======
         /* Custom HTML legend only for species chart.
            This keeps Chart.js colors and chart type unchanged, while allowing italic species names. */
         .custom-legend {
@@ -211,13 +246,19 @@
             padding-top: 4px;
             max-height: 52px;
             overflow-y: auto;
+>>>>>>> f062926e198db15db08d4d4b7a9955c2769671a0
         }
 
         .custom-legend .legend-item {
             display: inline-flex;
             align-items: center;
             gap: 4px;
+<<<<<<< HEAD
+            white-space: normal;
+            line-height: 1.25;
+=======
             white-space: nowrap;
+>>>>>>> f062926e198db15db08d4d4b7a9955c2769671a0
         }
 
         .custom-legend .legend-swatch {
@@ -341,21 +382,55 @@
             line-height: 1.2;
         }
 
-        .badge-blue { background: #e8f0fe; color: var(--navy); border-color: var(--navy); }
-        .badge-green { background: #e6f4ea; color: var(--green); border-color: var(--green); }
-        .badge-red { background: #fdecea; color: var(--red); border-color: var(--red); }
-        .badge-gray { background: #f0f0f0; color: #666; border-color: #bbb; }
-        .badge-gold { background: #fff8d6; color: #8a6d00; border-color: #e0c200; }
+        .badge-blue {
+            background: #e8f0fe;
+            color: var(--navy);
+            border-color: var(--navy);
+        }
 
-        .score-high { color: var(--green); font-weight: 700; }
-        .score-mid { color: #c47f00; font-weight: 700; }
-        .score-low { color: var(--red); font-weight: 700; }
+        .badge-green {
+            background: #e6f4ea;
+            color: var(--green);
+            border-color: var(--green);
+        }
+
+        .badge-red {
+            background: #fdecea;
+            color: var(--red);
+            border-color: var(--red);
+        }
+
+        .badge-gray {
+            background: #f0f0f0;
+            color: #666;
+            border-color: #bbb;
+        }
+
+        .badge-gold {
+            background: #fff8d6;
+            color: #8a6d00;
+            border-color: #e0c200;
+        }
+
+        .score-high {
+            color: var(--green);
+            font-weight: 700;
+        }
+
+        .score-mid {
+            color: #c47f00;
+            font-weight: 700;
+        }
+
+        .score-low {
+            color: var(--red);
+            font-weight: 700;
+        }
 
         .italic-text {
             font-style: italic;
         }
 
-        /* Italic styling applied selectively to recognised binomials only */
         .species-cell i {
             font-style: italic;
         }
@@ -364,7 +439,6 @@
             color: #777;
         }
 
-        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -516,8 +590,27 @@
                 justify-content: flex-start;
             }
         }
+
+        @media (max-width: 520px) {
+            .species-chart-box {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+
+            .species-side-legend {
+                order: -1;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+                max-height: 60px;
+                padding-left: 0;
+                padding-bottom: 4px;
+            }
+        }
     </style>
 </head>
+
 <body>
 
 <header class="hero">
@@ -536,7 +629,9 @@
                     placeholder="Search identifier, disease, species, sample, molecule class, or source"
                     aria-label="Search harmonized EV metadata"
                 >
-                <div class="filter-note">Free-text search supports identifier, species, sample, disease, method, vesicle, source, and PMID matching.</div>
+                <div class="filter-note">
+                    Free-text search supports identifier, species, sample, disease, method, vesicle, source, and PMID matching.
+                </div>
             </div>
 
             <div class="filter-wrap" id="sourceFilterWrap">
@@ -578,7 +673,17 @@
     </div>
 
     <div id="dashboard" class="charts-row">
+<<<<<<< HEAD
+        <div class="chart-box species-chart-box">
+            <div class="species-chart-canvas">
+                <canvas id="cSpecies"></canvas>
+            </div>
+            <div id="speciesLegend" class="custom-legend species-side-legend"></div>
+        </div>
+
+=======
         <div class="chart-box"><canvas id="cSpecies"></canvas><div id="speciesLegend" class="custom-legend"></div></div>
+>>>>>>> f062926e198db15db08d4d4b7a9955c2769671a0
         <div class="chart-box"><canvas id="cSource"></canvas></div>
         <div class="chart-box"><canvas id="cScore"></canvas></div>
         <div class="chart-box"><canvas id="cGroup"></canvas></div>
@@ -695,7 +800,6 @@
     let chartScore = null;
     let chartGroup = null;
 
-    // Keep in sync with KNOWN_SCIENTIFIC in evisionary_common.py
     const KNOWN_SCIENTIFIC = new Set([
         "Homo sapiens", "Mus musculus", "Rattus norvegicus", "Bos taurus",
         "Sus scrofa", "Drosophila melanogaster", "Canis lupus familiaris",
@@ -720,24 +824,41 @@
             .replaceAll("'", '&#039;');
     }
 
-    // A label may be a multi-species string "A | B"; italicise if ANY token is a known binomial.
-    function isScientificLabel(label) {
-        return String(label).split('|').some(p => KNOWN_SCIENTIFIC.has(p.trim()));
-    }
-
-    // Client-side fallback in case backend species_html is missing.
     function speciesToHtmlFallback(val) {
         const text = safeText(val);
         if (text === 'Unknown') return 'Unknown';
+
         return text.split('|').map(p => {
             const t = p.trim();
-            return KNOWN_SCIENTIFIC.has(t) ? `<i>${escapeHtml(t)}</i>` : escapeHtml(t);
+            return KNOWN_SCIENTIFIC.has(t)
+                ? `<i>${escapeHtml(t)}</i>`
+                : escapeHtml(t);
         }).join(' | ');
     }
 
     function renderSpeciesHtml(r) {
-        // Prefer backend-provided, XSS-safe species_html; fall back to client builder.
         return r.species_html || speciesToHtmlFallback(r.species);
+    }
+
+    function speciesLabelToLegendHtml(label) {
+        return String(label).split('|').map(p => {
+            const t = p.trim();
+            return KNOWN_SCIENTIFIC.has(t)
+                ? `<i>${escapeHtml(t)}</i>`
+                : escapeHtml(t);
+        }).join(' | ');
+    }
+
+    function renderCustomSpeciesLegend(containerId, labels, values, colors) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        container.innerHTML = labels.map((lbl, i) => `
+            <span class="legend-item">
+                <span class="legend-swatch" style="background:${colors[i]}"></span>
+                ${speciesLabelToLegendHtml(lbl)} (${values[i]})
+            </span>
+        `).join('');
     }
 
     function clearDynamicOptions(selectEl) {
@@ -788,61 +909,15 @@
             const res = await fetch('/filters');
             const data = await res.json();
 
-            configureFilter(
-                'sourceFilter',
-                'sourceFilterNote',
-                data.sources || [],
-                'All sources',
-                'Only one source available',
-                'No source options available'
-            );
-
-            configureFilter(
-                'speciesFilter',
-                'speciesFilterNote',
-                data.species || [],
-                'All species',
-                'Only one species available',
-                'No species options available'
-            );
-
-            configureFilter(
-                'groupFilter',
-                'groupFilterNote',
-                data.molecule_groups || [],
-                'All molecule groups',
-                'Only one group available',
-                'No molecule-group options available'
-            );
+            configureFilter('sourceFilter', 'sourceFilterNote', data.sources || [], 'All sources', 'Only one source available', 'No source options available');
+            configureFilter('speciesFilter', 'speciesFilterNote', data.species || [], 'All species', 'Only one species available', 'No species options available');
+            configureFilter('groupFilter', 'groupFilterNote', data.molecule_groups || [], 'All molecule groups', 'Only one group available', 'No molecule-group options available');
         } catch (e) {
             console.error('Failed to load filters:', e);
 
-            configureFilter(
-                'sourceFilter',
-                'sourceFilterNote',
-                [],
-                'All sources',
-                'Only one source available',
-                'No source options available'
-            );
-
-            configureFilter(
-                'speciesFilter',
-                'speciesFilterNote',
-                [],
-                'All species',
-                'Only one species available',
-                'No species options available'
-            );
-
-            configureFilter(
-                'groupFilter',
-                'groupFilterNote',
-                [],
-                'All molecule groups',
-                'Only one group available',
-                'No molecule-group options available'
-            );
+            configureFilter('sourceFilter', 'sourceFilterNote', [], 'All sources', 'Only one source available', 'No source options available');
+            configureFilter('speciesFilter', 'speciesFilterNote', [], 'All species', 'Only one species available', 'No species options available');
+            configureFilter('groupFilter', 'groupFilterNote', [], 'All molecule groups', 'Only one group available', 'No molecule-group options available');
         }
     }
 
@@ -871,9 +946,7 @@
         const species = speciesEl.disabled ? '' : speciesEl.value;
         const group = groupEl.disabled ? '' : groupEl.value;
 
-        if (!q && !source && !species && !group) {
-            return;
-        }
+        if (!q && !source && !species && !group) return;
 
         hideStates();
         document.getElementById('loadingState').style.display = 'block';
@@ -959,6 +1032,7 @@
                 <td>${auditFlags}</td>
                 <td>${escapeHtml(safeText(r.year))}</td>
             `;
+
             tbody.appendChild(tr);
         });
     }
@@ -971,9 +1045,11 @@
 
     function buildAuditFlags(r) {
         const flags = [];
+
         if (Number(r.raw_norm_discrepant) === 1) flags.push(`<span class="badge badge-red">raw→norm</span>`);
         if (Number(r.norm_alias_discrepant) === 1) flags.push(`<span class="badge badge-gold">norm→alias</span>`);
         if (flags.length === 0) flags.push(`<span class="badge badge-gray">none</span>`);
+
         return flags.join(' ');
     }
 
@@ -998,6 +1074,7 @@
 
     function showModal(r) {
         document.getElementById('m-title').innerText = `${safeText(r.name)} (${safeText(r.type)})`;
+
         document.getElementById('m-record').innerText = safeText(r.record_uid);
         document.getElementById('m-source-row').innerText = safeText(r.source_row_uid);
         document.getElementById('m-pre').innerText = safeText(r.pre_dedup_uid);
@@ -1020,10 +1097,20 @@
         document.getElementById('m-metric').innerText = safeText(r.ev_metric);
 
         const discContainer = document.getElementById('m-disc');
-        let discHtml = [];
-        if (Number(r.raw_norm_discrepant) === 1) discHtml.push('<span class="badge badge-red">raw→norm discrepancy</span>');
-        if (Number(r.norm_alias_discrepant) === 1) discHtml.push('<span class="badge badge-gold">norm→alias discrepancy</span>');
-        if (discHtml.length === 0) discHtml.push('<span class="badge badge-gray">none</span>');
+        const discHtml = [];
+
+        if (Number(r.raw_norm_discrepant) === 1) {
+            discHtml.push('<span class="badge badge-red">raw→norm discrepancy</span>');
+        }
+
+        if (Number(r.norm_alias_discrepant) === 1) {
+            discHtml.push('<span class="badge badge-gold">norm→alias discrepancy</span>');
+        }
+
+        if (discHtml.length === 0) {
+            discHtml.push('<span class="badge badge-gray">none</span>');
+        }
+
         discContainer.innerHTML = `<span class="inline-badges">${discHtml.join(' ')}</span>`;
 
         const pmid = safeText(r.pmid);
@@ -1036,6 +1123,30 @@
     }
 
     function destroyAllCharts() {
+<<<<<<< HEAD
+        if (chartSpecies) {
+            chartSpecies.destroy();
+            chartSpecies = null;
+        }
+
+        if (chartSource) {
+            chartSource.destroy();
+            chartSource = null;
+        }
+
+        if (chartScore) {
+            chartScore.destroy();
+            chartScore = null;
+        }
+
+        if (chartGroup) {
+            chartGroup.destroy();
+            chartGroup = null;
+        }
+
+        const legendEl = document.getElementById('speciesLegend');
+        if (legendEl) legendEl.innerHTML = '';
+=======
         if (chartSpecies) { chartSpecies.destroy(); chartSpecies = null; }
         if (chartSource) { chartSource.destroy(); chartSource = null; }
         if (chartScore) { chartScore.destroy(); chartScore = null; }
@@ -1064,6 +1175,7 @@
                 ${speciesLabelToLegendHtml(lbl)} (${values[i]})
             </span>
         `).join('');
+>>>>>>> f062926e198db15db08d4d4b7a9955c2769671a0
     }
 
     function renderCharts(data) {
@@ -1092,7 +1204,11 @@
             speciesMap,
             'Top Species in Retrieved Set',
             5,
+<<<<<<< HEAD
+            ['#1f4e79', '#228B22', '#c9d6df', '#95a5a6', '#dfe6e9'],
+=======
             ['#1f4e79','#228B22','#c9d6df','#95a5a6','#dfe6e9'],
+>>>>>>> f062926e198db15db08d4d4b7a9955c2769671a0
             'speciesLegend'
         );
 
@@ -1102,7 +1218,11 @@
             sourceMap,
             'Source Distribution',
             null,
+<<<<<<< HEAD
+            ['#1f4e79', '#228B22', '#95a5a6', '#d4d8dd'],
+=======
             ['#1f4e79','#228B22','#95a5a6','#d4d8dd'],
+>>>>>>> f062926e198db15db08d4d4b7a9955c2769671a0
             null
         );
 
@@ -1112,7 +1232,11 @@
             scoreBandMap,
             'Metadata Score Bands',
             null,
+<<<<<<< HEAD
+            ['#228B22', '#f1c40f', '#e67e22', '#c0392b'],
+=======
             ['#228B22','#f1c40f','#e67e22','#c0392b'],
+>>>>>>> f062926e198db15db08d4d4b7a9955c2769671a0
             null
         );
 
@@ -1128,8 +1252,21 @@
     }
 
     function makeChart(canvasId, type, dataMap, title, topN, colors, customLegendId = null) {
+<<<<<<< HEAD
+        const canvas = document.getElementById(canvasId);
+
+        if (!canvas) {
+            console.error(`Canvas not found: ${canvasId}`);
+            return null;
+        }
+
+=======
+>>>>>>> f062926e198db15db08d4d4b7a9955c2769671a0
         let entries = Object.entries(dataMap).sort((a, b) => b[1] - a[1]);
-        if (topN) entries = entries.slice(0, topN);
+
+        if (topN) {
+            entries = entries.slice(0, topN);
+        }
 
         const labels = entries.map(x => x[0]);
         const values = entries.map(x => x[1]);
@@ -1138,7 +1275,11 @@
             ? Array(values.length).fill(colors[0])
             : labels.map((_, i) => colors[i % colors.length]);
 
+<<<<<<< HEAD
+        const chart = new Chart(canvas, {
+=======
         const chart = new Chart(document.getElementById(canvasId), {
+>>>>>>> f062926e198db15db08d4d4b7a9955c2769671a0
             type: type,
             data: {
                 labels: labels,
@@ -1161,7 +1302,13 @@
                 },
                 scales: type === 'bar'
                     ? {
+<<<<<<< HEAD
+                        y: {
+                            beginAtZero: true
+                        }
+=======
                         y: { beginAtZero: true }
+>>>>>>> f062926e198db15db08d4d4b7a9955c2769671a0
                     }
                     : {}
             }
@@ -1234,22 +1381,30 @@
             csv += vals.join(',') + '\n';
         });
 
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob([csv], {
+            type: 'text/csv;charset=utf-8;'
+        });
+
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
+
         a.href = url;
         a.download = 'EVisionary_Query_Export.csv';
+
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
+
         window.URL.revokeObjectURL(url);
     }
 
     document.getElementById('q').addEventListener('keypress', e => {
-        if (e.key === 'Enter') runSearch();
+        if (e.key === 'Enter') {
+            runSearch();
+        }
     });
 
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', e => {
         if (e.key === 'Escape') {
             closeModal();
         }
@@ -1257,5 +1412,6 @@
 
     loadFilters();
 </script>
+
 </body>
 </html>
