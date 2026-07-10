@@ -201,6 +201,34 @@
             flex-shrink: 0;
         }
 
+        .species-chart-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .species-chart-box canvas {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .custom-legend.side-legend {
+            width: 45%;
+            max-height: none;
+            overflow: visible;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 6px;
+            padding: 0;
+            text-align: left;
+        }
+
+        .custom-legend.side-legend .legend-item {
+            white-space: normal;
+        }
+
         .table-area { margin-top: 28px; display: none; }
 
         .summary-strip {
@@ -496,9 +524,9 @@
     </div>
 
     <div id="dashboard" class="charts-row">
-        <div class="chart-box">
-            <div id="speciesLegend" class="custom-legend"></div>
+        <div class="chart-box species-chart-box">
             <canvas id="cSpecies"></canvas>
+            <div id="speciesLegend" class="custom-legend side-legend"></div>
         </div>
         <div class="chart-box"><canvas id="cSource"></canvas></div>
         <div class="chart-box"><canvas id="cScore"></canvas></div>
