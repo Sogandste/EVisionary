@@ -1,4 +1,13 @@
+بسیار خب سوگند جان. این نسخه نهایی، کامل و یکپارچه است. تمام بخش‌ها (از هدر گرافیکی بالا تا فوتر پایین، به همراه فلوچارت درختی تمیز و جدول‌های رنگ‌بندی‌شده) با هم ترکیب شده‌اند.
 
+کافیست کل متن داخل کادر زیر را کپی کرده و در فایل README.md خودت Paste کنی:
+
+        
+        markdown
+        
+    
+  
+      <p align="center">
   <img src="https://capsule-render.vercel.app/api?type=rect&height=120&color=0:1f4e79,55:228B22,100:DAA520&text=EVisionary&fontColor=ffffff&fontSize=42&fontAlignY=45&desc=Provenance-aware%20EV%20repository%20harmonization&descAlignY=72&descSize=16" alt="EVisionary header" />
 </p>
 
@@ -48,13 +57,13 @@ EVisionary takes a conservative middle path: it improves cross-repository search
 
 | Feature | Description |
 |---|---|
-| Snapshot-based integration | Uses dated local exports rather than live repository calls |
-| Provenance preservation | Retains source identity throughout normalization and deduplication |
-| Conservative harmonization | Normalizes selected fields without unsupported semantic inference |
-| Multi-cargo support | Includes protein, mRNA, miRNA, lipid, and study-level EV-TRACK records |
-| Local query backend | Uses Apache Parquet and DuckDB for efficient local querying |
-| Web interface | Provides search, filtering, summary plots, PubMed links, utility scores, and CSV export |
-| Audit support | Includes validation outputs for completeness, query stability, and source complementarity |
+| 🟦 **Snapshot-based integration** | Uses dated local exports rather than live repository calls |
+| 🟩 **Provenance preservation** | Retains source identity throughout normalization and deduplication |
+| 🟨 **Conservative harmonization**| Normalizes selected fields without unsupported semantic inference |
+| ⬜ **Multi-cargo support**       | Includes protein, mRNA, miRNA, lipid, and study-level EV-TRACK records |
+| 🟦 **Local query backend**       | Uses Apache Parquet and DuckDB for efficient local querying |
+| 🟩 **Web interface**             | Provides search, filtering, summary plots, PubMed links, utility scores, and CSV export |
+| 🟨 **Audit support**             | Includes validation outputs for completeness, query stability, and source complementarity |
 
 ---
 
@@ -62,14 +71,14 @@ EVisionary takes a conservative middle path: it improves cross-repository search
 
 | Metric | Value |
 |---|---:|
-| Source rows processed | 713,667 |
-| Final harmonized records | 258,460 |
-| Cargo-level records | 253,491 |
-| Study-level EV-TRACK records | 4,969 |
-| Vesiclepedia records | 195,488 |
-| ExoCarta records | 58,003 |
-| EV-TRACK records | 4,969 |
-| Missing or unusable method field | 16.87% |
+| 🟦 Source rows processed | 713,667 |
+| 🟩 Final harmonized records | 258,460 |
+| 🟨 Cargo-level records | 253,491 |
+| ⬜ Study-level EV-TRACK records | 4,969 |
+| 🟦 Vesiclepedia records | 195,488 |
+| 🟩 ExoCarta records | 58,003 |
+| ⬜ EV-TRACK records | 4,969 |
+| 🟨 Missing or unusable method field | 16.87% |
 
 ---
 
@@ -77,10 +86,10 @@ EVisionary takes a conservative middle path: it improves cross-repository search
 
 | Molecular class | Records | Unique PMIDs |
 |---|---:|---:|
-| Protein | 207,623 | 569 |
-| mRNA | 26,701 | 26 |
-| miRNA | 16,131 | 120 |
-| Lipid | 2,896 | 52 |
+| 🟦 Protein | 207,623 | 569 |
+| 🟩 mRNA | 26,701 | 26 |
+| 🟨 miRNA | 16,131 | 120 |
+| ⬜ Lipid | 2,896 | 52 |
 
 Disease annotations were available in **4,949 records**, corresponding to **1.92%** of the harmonized snapshot. This highlights persistent sparsity of disease and clinical-context metadata even after cross-repository integration.
 
@@ -90,10 +99,10 @@ Disease annotations were available in **4,949 records**, corresponding to **1.92
 
 | Molecular class | Vesiclepedia | ExoCarta | Main pattern |
 |---|---:|---:|---|
-| Protein | 160,806 | 46,817 | Vesiclepedia-dominant |
-| mRNA | 23,307 | 3,394 | Vesiclepedia-dominant |
-| miRNA | 10,091 | 6,040 | Shared coverage |
-| Lipid | 1,283 | 1,613 | ExoCarta-dominant |
+| 🟦 Protein | 160,806 | 46,817 | Vesiclepedia-dominant |
+| 🟩 mRNA | 23,307 | 3,394 | Vesiclepedia-dominant |
+| 🟨 miRNA | 10,091 | 6,040 | Shared coverage |
+| ⬜ Lipid | 1,283 | 1,613 | ExoCarta-dominant |
 
 The integrated snapshot shows that EV repositories are complementary rather than interchangeable. In particular, disease and biofluid annotations remain sparse and source-dependent.
 
@@ -103,13 +112,13 @@ The integrated snapshot shows that EV repositories are complementary rather than
 
 | Use case | Query logic | Records | Unique PMIDs | Interpretation |
 |---|---|---:|---:|---|
-| Protein cargo | `molecule_type = Protein` | 207,623 | 569 | Broad cargo retrieval |
-| miRNA cargo | `molecule_type = miRNA` | 16,131 | 120 | Canonical miRNA retrieval |
-| Lipid cargo | `molecule_type = Lipid` | 2,896 | 52 | Source-complementary coverage |
-| Plasma context | `sample_name contains plasma` | 547 | 444 | Biofluid metadata are retrievable but source-dependent |
-| Breast cancer context | `disease contains breast cancer` | 12 | 11 | Disease metadata are sparse |
-| Breast cancer + plasma | Combined constraint | 6 | 6 | Limited co-annotation |
-| Breast cancer + plasma + miRNA | Triple constraint | 0 | 0 | Metadata granularity gap |
+| 🟦 Protein cargo | `molecule_type = Protein` | 207,623 | 569 | Broad cargo retrieval |
+| 🟩 miRNA cargo | `molecule_type = miRNA` | 16,131 | 120 | Canonical miRNA retrieval |
+| 🟨 Lipid cargo | `molecule_type = Lipid` | 2,896 | 52 | Source-complementary coverage |
+| ⬜ Plasma context | `sample_name contains plasma` | 547 | 444 | Biofluid metadata are retrievable but source-dependent |
+| 🟦 Breast cancer context | `disease contains breast cancer` | 12 | 11 | Disease metadata are sparse |
+| 🟩 Breast cancer + plasma | Combined constraint | 6 | 6 | Limited co-annotation |
+| 🟨 Breast cancer + plasma + miRNA | Triple constraint | 0 | 0 | Metadata granularity gap |
 
 A zero result for the triple-constrained query should not be interpreted as biological absence. It indicates that the current snapshots do not connect cargo, disease, and biofluid annotations at compatible granularity.
 
@@ -118,33 +127,57 @@ A zero result for the triple-constrained query should not be interpreted as biol
 ## Workflow
 
 ```text
-Repository exports
-(Vesiclepedia, ExoCarta, EV-TRACK)
-        |
-        v
-Source-specific ingestion
-        |
-        v
-Canonical field mapping
-        |
-        v
-Conservative normalization
-        |
-        v
-Provenance-preserving deduplication
-        |
-        v
-Parquet master snapshot
-        |
-        v
-DuckDB query backend
-        |
-        v
-Flask web interface
-        |
-        v
-Search results, summary plots, PubMed links,
-utility scores, and CSV export
+┌──────────────────────────────────────────────┐
+│ Repository exports                           │
+│ Vesiclepedia · ExoCarta · EV-TRACK           │
+└───────────────────────┬──────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────┐
+│ Source-specific ingestion                    │
+└───────────────────────┬──────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────┐
+│ Canonical field mapping                      │
+│ Conservative 18-column schema                │
+└───────────────────────┬──────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────┐
+│ Conservative normalization                   │
+│ No unsupported biological inference          │
+└───────────────────────┬──────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────┐
+│ Provenance-preserving deduplication          │
+│ Source-aware composite key                   │
+└───────────────────────┬──────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────┐
+│ Parquet master snapshot                      │
+│ Local, reproducible, query-ready resource    │
+└───────────────────────┬──────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────┐
+│ DuckDB query backend                         │
+│ Fast local analytical querying               │
+└───────────────────────┬──────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────┐
+│ Flask web interface                          │
+│ Search · filters · plots · PubMed links      │
+└───────────────────────┬──────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────┐
+│ Exportable results                           │
+│ Tables · utility scores · CSV output         │
+└──────────────────────────────────────────────┘
     
     
   
@@ -176,18 +209,18 @@ Repository Structure
     
   
   
-Path	 | 	Purpose
-----------------
-app.py	 | 	Root-level Flask entry point retained for deployment compatibility
-Scripts/app.py	 | 	Primary application script
-evisionary_common.py	 | 	Shared helper functions
-ontology_terms.py	 | 	Controlled vocabulary and ontology-related terms
-synonyms.py	 | 	Query normalization and synonym resources
-requirements.txt	 | 	Python dependencies
-data/	 | 	Raw data, processed snapshots, and audit outputs
-docs/	 | 	Documentation and supporting material
-static/	 | 	Static assets for the web interface
-templates/	 | 	Flask HTML templates
+Component	 | 	Role
+------------------
+🟦 app.py	 | 	Root-level Flask entry point retained for deployment compatibility
+🟩 Scripts/app.py	 | 	Primary application script
+🟦 evisionary_common.py	 | 	Shared helper functions used across the application
+🟩 ontology_terms.py	 | 	Controlled vocabulary and ontology-related terms
+🟨 synonyms.py	 | 	Query normalization and synonym resources
+⬜ requirements.txt	 | 	Python dependency list
+🟦 data/	 | 	Raw data, processed snapshots, and audit outputs
+🟩 docs/	 | 	Documentation and supporting material
+🟨 static/	 | 	Static assets for the web interface
+⬜ templates/	 | 	Flask HTML templates
 
 Data Model
 
@@ -195,19 +228,19 @@ EVisionary maps heterogeneous source exports to a conservative canonical schema.
 
 Field	 | 	Description
 ---------------------
-pmid	 | 	PubMed identifier
-sample_name	 | 	Sample or biosource descriptor
-working_id	 | 	Cargo-level identifier when available
-molecule_type_raw	 | 	Original source-reported molecule label
-molecule_type_norm	 | 	Normalized molecule label
-molecule_type_group	 | 	Broad molecular class
-method	 | 	Isolation or methodological descriptor
-species	 | 	Harmonized organism label
-year	 | 	Publication year
-disease	 | 	Disease or condition annotation
-vesicle	 | 	Vesicle subtype or EV-related annotation
-ev_metric	 | 	EV-TRACK reporting metric
-source	 | 	Repository provenance
+🟦 pmid	 | 	PubMed identifier
+🟩 sample_name	 | 	Sample or biosource descriptor
+🟨 working_id	 | 	Cargo-level identifier when available
+⬜ molecule_type_raw	 | 	Original source-reported molecule label
+🟦 molecule_type_norm	 | 	Normalized molecule label
+🟩 molecule_type_group	 | 	Broad molecular class
+🟨 method	 | 	Isolation or methodological descriptor
+⬜ species	 | 	Harmonized organism label
+🟦 year	 | 	Publication year
+🟩 disease	 | 	Disease or condition annotation
+🟨 vesicle	 | 	Vesicle subtype or EV-related annotation
+⬜ ev_metric	 | 	EV-TRACK reporting metric
+🟦 source	 | 	Repository provenance
 Missing or ambiguous values are assigned Unknown. EVisionary does not infer missing biological or clinical annotations.
 
 
@@ -442,13 +475,13 @@ Selected validation results:
 
 Validation item	 | 	Result
 --------------------------
-Source rows processed	 | 	713,667
-Final harmonized records	 | 	258,460
-Canonical miRNA records recovered	 | 	16,131
-Missing or unusable method field	 | 	16.87%
-Plasma retrieval after syntax stabilization	 | 	547 records
-Breast cancer retrieval after syntax stabilization	 | 	12 records
-Breast cancer + plasma + miRNA query	 | 	0 records
+🟦 Source rows processed	 | 	713,667
+🟩 Final harmonized records	 | 	258,460
+🟨 Canonical miRNA records recovered	 | 	16,131
+⬜ Missing or unusable method field	 | 	16.87%
+🟦 Plasma retrieval after syntax stabilization	 | 	547 records
+🟩 Breast cancer retrieval after syntax stabilization	 | 	12 records
+🟨 Breast cancer + plasma + miRNA query	 | 	0 records
 The zero-result triple-constrained query reflects a metadata co-annotation gap rather than a backend retrieval failure.
 
 
