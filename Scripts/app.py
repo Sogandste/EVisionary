@@ -1,0 +1,289 @@
+import os
+import re
+import html
+from pathlib import Path
+
+import duckdb
+import pandas as pd
+from flask import Flask, jsonify, render_template, request
+
+from evisionary_common import (
+    MISSING_LIKE,
+    KNOWN_SCIENTIFIC,
+    clean_pmid_value,
+    pmid_to_pubmed_url,
+)
+
+app = Flask(__name__)
+APP_NAME = "EVisionary"
+
+BASE_DIR = Path(__file__).resolve().parent
+DATA_PATH = BASE_DIR / "data" / "unified_EVmetadata_enriched.parquet"
+if not DATA_PATH.exists():
+    raise FileNotFoundError(f"Enriched Parquet dataset not found: {DATA_PATH}")
+
+con = duckdb.connect(database=":memory:")
+con.execute(
+    f"CREATE VIEW ev AS SELECT * FROM read_parquet('{DATA_PATH.as_posix()}')"
+)
+
+DISPLAY_COLUMNS = [
+    "record_uid", "source_row_uid", "pre_dedup_uid", "pmid", "sample_name",
+    "working_id", "molecule_type_raw", "molecule_type_norm", "molecule_type_group",
+    "molecule_type", "method", "species", "year", "disease", "vesicle",
+    "characterization", "ev_metric", "source", "metadata_utility_score",
+    "metadata_score_band", "source_priority",
+    "molecule_raw_norm_discrepant", "molecule_norm_compat_discrepant",
+]
+
+SEARCH_FIELDS = [
+    ("working_id", 4.0), ("molecule_type_norm", 3.0), ("molecule_type_group", 2.5),
+    ("molecule_type_raw", 2.0), ("species", 2.0), ("sample_name", 2.0),
+    ("disease", 2.0), ("method", 1.5), ("vesicle", 1.5),
+    ("source", 1.0), ("pmid", 1.0),
+]
+
+MAX_LIMIT = 500
+DEFAULT_LIMIT = 500
+
+
+# ---------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------
+def normalize_input(value):
+    return (value or "").strip()
+
+
+def normalize_limit(value, default=DEFAULT_LIMIT, max_limit=MAX_LIMIT):
+    try:
+        value = int(value)
+    except (TypeError, ValueError):
+        return default
+    if value < 1:
+        return default
+    return min(value, max_limit)
+
+
+def clean_text(val):
+    if pd.isna(val):
+        return "Unknown"
+    text = str(val).strip()
+    if text.casefold() in MISSING_LIKE:
+        return "Unknown"
+    return " ".join(text.replace("_", " ").split())
+
+
+def clean_year(val):
+    text = clean_text(val)
+    return text if text == "Unknown" else text.replace(".0", "")
+
+
+def escape_like(value):
+    """Escape SQL LIKE wildcards so user input is treated literally."""
+    return (
+        value.replace("\\", "\\\\")
+        .replace("%", "\\%")
+        .replace("_", "\\_")
+    )
+
+
+def species_to_html_safe(val):
+    """XSS-safe italic rendering for recognised binomials."""
+    text = clean_text(val)
+    if text == "Unknown":
+        return "Unknown"
+    parts = [p.strip() for p in text.split("|")]
+    rendered = []
+    for p in parts:
+        if p in KNOWN_SCIENTIFIC:
+            rendered.append(f"<i>{html.escape(p)}</i>")
+        else:
+            rendered.append(html.escape(p))
+    return " | ".join(rendered)
+
+
+def row_to_output(rd):
+    return {
+        "record_uid": clean_text(rd.get("record_uid")),
+        "source_row_uid": clean_text(rd.get("source_row_uid")),
+        "pre_dedup_uid": clean_text(rd.get("pre_dedup_uid")),
+        "name": clean_text(rd.get("working_id")),
+        "type": clean_text(rd.get("molecule_type")),
+        "type_raw": clean_text(rd.get("molecule_type_raw")),
+        "type_norm": clean_text(rd.get("molecule_type_norm")),
+        "type_group": clean_text(rd.get("molecule_type_group")),
+        "species": clean_text(rd.get("species")),
+        "species_html": species_to_html_safe(rd.get("species")),
+        "sample": clean_text(rd.get("sample_name")),
+        "method": clean_text(rd.get("method")),
+        "vesicle": clean_text(rd.get("vesicle")),
+        "disease": clean_text(rd.get("disease")),
+        "characterization": clean_text(rd.get("characterization")),
+        "ev_metric": clean_text(rd.get("ev_metric")),
+        "year": clean_year(rd.get("year")),
+        "pmid": clean_pmid_value(rd.get("pmid")),
+        "pmid_url": pmid_to_pubmed_url(rd.get("pmid")),
+        "source": clean_text(rd.get("source")),
+        "source_priority": int(rd.get("source_priority", 1) or 1),
+        "metadata_utility_score": round(
+            float(rd.get("metadata_utility_score", 0) or 0), 3
+        ),
+        "metadata_score_band": clean_text(rd.get("metadata_score_band")),
+        "retrieval_rank_score": round(
+            float(rd.get("retrieval_rank_score", 0) or 0), 3
+        ),
+        "raw_norm_discrepant": int(rd.get("molecule_raw_norm_discrepant", 0) or 0),
+        "norm_compat_discrepant": int(
+            rd.get("molecule_norm_compat_discrepant", 0) or 0
+        ),
+    }
+
+
+def build_search_sql(has_query, has_source, has_species, has_group):
+    select_cols = ", ".join(DISPLAY_COLUMNS)
+    if has_query:
+        score_parts, text_where_parts = [], []
+        for field, weight in SEARCH_FIELDS:
+            score_parts.append(f"""
+                CASE
+                    WHEN LOWER(COALESCE(CAST({field} AS VARCHAR), '')) = ? THEN {weight}
+                    WHEN regexp_matches(LOWER(COALESCE(CAST({field} AS VARCHAR), '')), ?) THEN {weight * 0.7}
+                    WHEN LOWER(COALESCE(CAST({field} AS VARCHAR), '')) LIKE ? ESCAPE '\\' THEN {weight * 0.4}
+                    ELSE 0
+                END""")
+            text_where_parts.append(
+                f"LOWER(COALESCE(CAST({field} AS VARCHAR), '')) LIKE ? ESCAPE '\\'"
+            )
+        retrieval_score_sql = f"""
+        (
+            {" + ".join(score_parts)}
+            + CASE WHEN pmid__informative = 1 THEN 0.3 ELSE 0 END
+            + CASE WHEN species__informative = 1 THEN 0.2 ELSE 0 END
+            + CASE WHEN sample_name__informative = 1 THEN 0.2 ELSE 0 END
+            + CASE WHEN source = 'EV-TRACK' AND ev_metric__informative = 1 THEN 0.2 ELSE 0 END
+        ) AS retrieval_rank_score"""
+        sql = f"SELECT {select_cols}, {retrieval_score_sql} FROM ev"
+        where_clauses = [f"({' OR '.join(text_where_parts)})"]
+    else:
+        sql = f"SELECT {select_cols}, 0.0 AS retrieval_rank_score FROM ev"
+        where_clauses = []
+
+    if has_source:
+        where_clauses.append("source = ?")
+    if has_species:
+        where_clauses.append("species = ?")
+    if has_group:
+        where_clauses.append("molecule_type_group = ?")
+    if where_clauses:
+        sql += " WHERE " + " AND ".join(where_clauses)
+
+    sql += """
+    ORDER BY retrieval_rank_score DESC, metadata_utility_score DESC,
+             source_priority DESC, TRY_CAST(year AS INTEGER) DESC NULLS LAST, record_uid
+    LIMIT ?"""
+    return sql
+
+
+def build_query_params(query, source_filter, species_filter, molecule_group_filter):
+    params = []
+    if query:
+        q_cf = query.casefold()
+        q_like = f"%{escape_like(q_cf)}%"
+        q_regex = rf"(^|[^a-z0-9]){re.escape(q_cf)}([^a-z0-9]|$)"
+        for _f, _w in SEARCH_FIELDS:
+            params.extend([q_cf, q_regex, q_like])
+        for _f, _w in SEARCH_FIELDS:
+            params.append(q_like)
+    if source_filter:
+        params.append(source_filter)
+    if species_filter:
+        params.append(species_filter)
+    if molecule_group_filter:
+        params.append(molecule_group_filter)
+    return params
+
+
+def search_duckdb(query=None, limit=DEFAULT_LIMIT, source_filter=None,
+                  species_filter=None, molecule_group_filter=None):
+    query = normalize_input(query)
+    source_filter = normalize_input(source_filter)
+    species_filter = normalize_input(species_filter)
+    molecule_group_filter = normalize_input(molecule_group_filter)
+    limit = normalize_limit(limit)
+
+    flags = [
+        bool(query), bool(source_filter),
+        bool(species_filter), bool(molecule_group_filter),
+    ]
+    if not any(flags):
+        return []
+
+    sql = build_search_sql(*flags)
+    params = build_query_params(
+        query, source_filter, species_filter, molecule_group_filter
+    )
+    params.append(limit)
+
+    try:
+        result = con.execute(sql, params)
+        cols = [d[0] for d in result.description]
+        return [row_to_output(dict(zip(cols, row))) for row in result.fetchall()]
+    except Exception as e:
+        print("Backend query error:", e)
+        return []
+
+
+def get_distinct_values():
+    exclude = "', '".join(sorted(MISSING_LIKE - {""}))
+    base = f"""
+        SELECT DISTINCT {{col}} FROM ev
+        WHERE {{col}} IS NOT NULL AND TRIM({{col}}) <> ''
+          AND LOWER(TRIM({{col}})) NOT IN ('{exclude}')
+        ORDER BY {{col}}{{limit}}"""
+    try:
+        sources = [r[0] for r in con.execute(base.format(col="source", limit="")).fetchall()]
+        species = [r[0] for r in con.execute(base.format(col="species", limit=" LIMIT 300")).fetchall()]
+        groups = [r[0] for r in con.execute(base.format(col="molecule_type_group", limit="")).fetchall()]
+        return {"sources": sources, "species": species, "molecule_groups": groups}
+    except Exception as e:
+        print("Filter endpoint error:", e)
+        return {"sources": [], "species": [], "molecule_groups": []}
+
+
+# ---------------------------------------------------------
+# Routes
+# ---------------------------------------------------------
+@app.route("/")
+def index():
+    return render_template("index.html", app_name=APP_NAME)
+
+
+@app.route("/search")
+def search():
+    return jsonify(search_duckdb(
+        query=request.args.get("q", ""),
+        limit=request.args.get("limit", DEFAULT_LIMIT),
+        source_filter=request.args.get("source", ""),
+        species_filter=request.args.get("species", ""),
+        molecule_group_filter=request.args.get("molecule_group", ""),
+    ))
+
+
+@app.route("/filters")
+def filters():
+    return jsonify(get_distinct_values())
+
+
+@app.route("/health")
+def health():
+    try:
+        n = con.execute("SELECT COUNT(*) FROM ev").fetchone()[0]
+        return jsonify({"status": "ok", "app": APP_NAME,
+                        "dataset": DATA_PATH.name, "rows": int(n)})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port, debug=False)
