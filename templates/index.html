@@ -1,0 +1,2048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ app_name }} | Harmonized EV Metadata Explorer</title>
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  >
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root {
+      --navy: #1f4e79;
+      --green: #228b22;
+      --gray: #e0e0e0;
+      --gold: #daa520;
+      --light-gold: #fff8dc;
+      --text: #333333;
+      --bg: #f5f7fa;
+      --red: #c0392b;
+      --blue: #2980b9;
+      --orange: #e67e22;
+      --shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+      --soft-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      background: var(--bg);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
+
+    a {
+      color: var(--navy);
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .hero {
+      padding: 40px 20px 50px;
+      color: white;
+      text-align: center;
+      background: var(--navy);
+      border-bottom: 5px solid var(--green);
+    }
+
+    .logo-ring {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 75px;
+      height: 75px;
+      margin: 0 auto 15px;
+      color: white;
+      font-size: 32px;
+      border: 2px solid var(--gold);
+      border-radius: 50%;
+      background:
+        radial-gradient(
+          circle,
+          rgba(218, 165, 32, 0.95) 0%,
+          rgba(218, 165, 32, 0.1) 70%
+        );
+      animation: sun-glow 3s infinite alternate;
+    }
+
+    @keyframes sun-glow {
+      from {
+        box-shadow:
+          0 0 15px rgba(218, 165, 32, 0.4),
+          inset 0 0 10px rgba(218, 165, 32, 0.4);
+      }
+
+      to {
+        box-shadow:
+          0 0 35px rgba(218, 165, 32, 1),
+          inset 0 0 20px rgba(218, 165, 32, 0.8);
+      }
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2.2rem;
+    }
+
+    .subtitle {
+      margin: 10px 0 0;
+      font-size: 1rem;
+      opacity: 0.95;
+    }
+
+    .main-content {
+      max-width: 1320px;
+      margin: -20px auto 40px;
+      padding: 0 20px;
+    }
+
+    .search-panel {
+      padding: 14px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .search-row {
+      display: grid;
+      grid-template-columns:
+        minmax(260px, 1.7fr)
+        repeat(3, minmax(180px, 1fr))
+        auto;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .filter-wrap {
+      display: block;
+      min-width: 0;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 46px;
+      padding: 12px 14px;
+      font-size: 0.95rem;
+      background: white;
+      border: 1px solid #d6d6d6;
+      border-radius: 8px;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--navy);
+      box-shadow: 0 0 0 3px rgba(31, 78, 121, 0.12);
+    }
+
+    select:disabled {
+      color: #777;
+      cursor: not-allowed;
+      background: #f3f4f6;
+      border-color: #d8d8d8;
+    }
+
+    .filter-note {
+      min-height: 18px;
+      margin-top: 6px;
+      color: #777;
+      font-size: 0.74rem;
+      line-height: 1.3;
+    }
+
+    .btn-go {
+      min-height: 46px;
+      margin: 0;
+      padding: 0 24px;
+      color: white;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+      background: var(--green);
+      border: 0;
+      border-radius: 8px;
+    }
+
+    .btn-go:hover {
+      background: #1b6e1b;
+    }
+
+    .btn-go:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    .state-container {
+      display: none;
+      margin-top: 24px;
+      padding: 50px 20px;
+      text-align: center;
+      background: white;
+      border: 1px dashed #ccc;
+      border-radius: 10px;
+    }
+
+    .loading-state i {
+      margin-bottom: 15px;
+      color: var(--gold);
+      font-size: 2.3rem;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .charts-row {
+      display: none;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+      align-items: stretch;
+      margin-top: 24px;
+    }
+
+    .chart-box {
+      display: flex;
+      flex-direction: column;
+      height: 340px;
+      min-height: 340px;
+      max-height: 340px;
+      padding: 14px;
+      overflow: hidden;
+      background: white;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      box-shadow: var(--soft-shadow);
+    }
+
+    .chart-title {
+      flex: 0 0 18px;
+      height: 18px;
+      min-height: 18px;
+      max-height: 18px;
+      margin: 0;
+      color: #666;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 18px;
+      text-align: center;
+    }
+
+    .custom-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 10px;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      font-size: 0.72rem;
+      line-height: 1.2;
+    }
+
+    .custom-legend.species-under-title-legend {
+      flex: 0 0 44px;
+      height: 44px;
+      min-height: 44px;
+      max-height: 44px;
+      padding: 4px 0 6px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      text-align: center;
+      scrollbar-width: thin;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      max-width: 100%;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .legend-swatch {
+      flex: 0 0 9px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+    }
+
+    .chart-canvas-wrap {
+      position: relative;
+      flex: 0 0 250px;
+      width: 100%;
+      height: 250px;
+      min-height: 250px;
+      max-height: 250px;
+    }
+
+    .chart-canvas-wrap--full {
+      flex: 0 0 312px;
+      height: 312px;
+      min-height: 312px;
+      max-height: 312px;
+    }
+
+    .chart-box canvas {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .table-area {
+      display: none;
+      margin-top: 28px;
+    }
+
+    .summary-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .summary-card {
+      padding: 14px;
+      background: white;
+      border: 1px solid #e5e5e5;
+      border-radius: 10px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .summary-card .label {
+      color: #666;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .summary-card .value {
+      margin-top: 5px;
+      color: var(--navy);
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .table-header-box {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      justify-content: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .export-area {
+      order: 1;
+      flex: 0 0 auto;
+    }
+
+    .results-heading-area {
+      order: 2;
+      flex: 1 1 650px;
+      min-width: 0;
+    }
+
+    .results-title {
+      margin: 0 0 4px;
+      color: var(--navy);
+    }
+
+    .results-note {
+      color: #666;
+      font-size: 0.86rem;
+      line-height: 1.5;
+    }
+
+    .btn-export {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 42px;
+      padding: 10px 18px;
+      color: white;
+      font-size: 0.85rem;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+      background: var(--gold);
+      border: 0;
+      border-radius: 8px;
+      box-shadow: 0 3px 8px rgba(218, 165, 32, 0.24);
+    }
+
+    .btn-export:hover {
+      background: #c4941c;
+      transform: translateY(-1px);
+    }
+
+    .table-scroll {
+      max-height: 580px;
+      overflow: auto;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      box-shadow: var(--soft-shadow);
+    }
+
+    table {
+      width: 100%;
+      min-width: 980px;
+      text-align: left;
+      border-collapse: collapse;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      padding: 12px;
+      color: var(--navy);
+      font-size: 0.82rem;
+      font-weight: 700;
+      background: #e8eaed;
+      border-bottom: 2px solid #ccc;
+    }
+
+    td {
+      padding: 11px 12px;
+      font-size: 0.84rem;
+      vertical-align: middle;
+      border-bottom: 1px solid #eee;
+    }
+
+    tr.result-row:hover td {
+      cursor: pointer;
+      background: #f0f9ff;
+    }
+
+    tr.result-row:focus {
+      outline: 3px solid rgba(31, 78, 121, 0.22);
+      outline-offset: -3px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 9px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      line-height: 1.2;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+    }
+
+    .badge-blue {
+      color: var(--navy);
+      background: #e8f0fe;
+      border-color: var(--navy);
+    }
+
+    .badge-green {
+      color: var(--green);
+      background: #e6f4ea;
+      border-color: var(--green);
+    }
+
+    .badge-red {
+      color: var(--red);
+      background: #fdecea;
+      border-color: var(--red);
+    }
+
+    .badge-gray {
+      color: #666;
+      background: #f0f0f0;
+      border-color: #bbb;
+    }
+
+    .badge-gold {
+      color: #7a5a00;
+      background: #fff8d6;
+      border-color: var(--gold);
+    }
+
+    .score-high {
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .score-mid {
+      color: #b37300;
+      font-weight: 700;
+    }
+
+    .score-low {
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    .species-cell i {
+      font-style: italic;
+    }
+
+    .muted {
+      color: #777;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      padding: 24px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.58);
+      backdrop-filter: blur(3px);
+    }
+
+    .modal.show {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .modal-card {
+      position: relative;
+      width: 92%;
+      max-width: 860px;
+      max-height: calc(100vh - 48px);
+      margin: auto;
+      padding: 28px;
+      overflow-y: auto;
+      background: white;
+      border-top: 6px solid var(--gold);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .close-btn {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: inline-flex;
+      float: right;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      margin-left: auto;
+      color: #888;
+      font-size: 1.4rem;
+      cursor: pointer;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 50%;
+    }
+
+    .close-btn:hover {
+      color: var(--red);
+      border-color: var(--red);
+    }
+
+    .modal-title {
+      margin-top: 0;
+      padding-right: 44px;
+      color: var(--navy);
+      word-break: break-word;
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px 24px;
+    }
+
+    .m-section {
+      min-width: 0;
+    }
+
+    .m-section h4 {
+      margin: 0 0 10px;
+      padding-bottom: 6px;
+      color: var(--navy);
+      border-bottom: 1px solid #ececec;
+    }
+
+    .m-row {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px dashed #efefef;
+    }
+
+    .m-lbl {
+      flex-shrink: 0;
+      width: 42%;
+      color: #666;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .m-val {
+      width: 58%;
+      color: #111;
+      font-size: 0.92rem;
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+
+    .inline-badges {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+
+    .pubmed-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      max-width: 100%;
+      padding: 8px 13px;
+      color: white;
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-decoration: none;
+      background: var(--navy);
+      border: 1px solid var(--navy);
+      border-radius: 7px;
+      transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+    }
+
+    .pubmed-link:hover {
+      color: white;
+      background: #173c5f;
+      transform: translateY(-1px);
+    }
+
+    .pubmed-unavailable {
+      color: #777;
+      font-style: italic;
+    }
+
+    @media (max-width: 1150px) {
+      .search-row {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .btn-go {
+        width: 100%;
+      }
+
+      .charts-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 960px) {
+      .search-row {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-card {
+        width: 100%;
+        padding: 20px;
+      }
+
+      .m-row {
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .m-lbl,
+      .m-val {
+        width: 100%;
+        text-align: left;
+      }
+
+      .inline-badges {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .charts-row {
+        grid-template-columns: 1fr;
+      }
+
+      .table-header-box {
+        align-items: stretch;
+      }
+
+      .export-area,
+      .results-heading-area {
+        flex: 1 1 100%;
+      }
+
+      .btn-export {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="hero">
+    <div class="logo-ring" aria-hidden="true">
+      <i class="fas fa-circle-nodes"></i>
+    </div>
+
+    <h1>EVisionary</h1>
+
+    <p class="subtitle">
+      Provenance-aware local exploration of harmonized extracellular vesicle metadata
+    </p>
+  </header>
+
+  <main class="main-content">
+    <section class="search-panel" aria-label="EV metadata search">
+      <div class="search-row">
+        <div class="filter-wrap">
+          <input
+            type="text"
+            id="q"
+            placeholder="Search identifier, disease, species, sample, molecule class, or source"
+            aria-label="Search harmonized EV metadata"
+          >
+
+          <div class="filter-note">
+            Free-text search supports identifier, species, sample, disease, method,
+            vesicle, source, and PMID matching.
+          </div>
+        </div>
+
+        <div class="filter-wrap">
+          <select id="sourceFilter" aria-label="Filter by source">
+            <option value="">All sources</option>
+          </select>
+          <div class="filter-note" id="sourceFilterNote"></div>
+        </div>
+
+        <div class="filter-wrap">
+          <select id="speciesFilter" aria-label="Filter by species">
+            <option value="">All species</option>
+          </select>
+          <div class="filter-note" id="speciesFilterNote"></div>
+        </div>
+
+        <div class="filter-wrap">
+          <select id="groupFilter" aria-label="Filter by molecule group">
+            <option value="">All molecule groups</option>
+          </select>
+          <div class="filter-note" id="groupFilterNote"></div>
+        </div>
+
+        <button class="btn-go" id="searchBtn" type="button" onclick="runSearch()">
+          <i class="fas fa-search"></i>
+          Search
+        </button>
+      </div>
+    </section>
+
+    <section id="loadingState" class="state-container loading-state" aria-live="polite">
+      <i class="fas fa-spinner" aria-hidden="true"></i>
+      <h3>Searching harmonized EV metadata...</h3>
+      <p class="muted">Please wait while the local query is executed.</p>
+    </section>
+
+    <section id="emptyState" class="state-container" aria-live="polite">
+      <h3>No Records Found</h3>
+      <p id="emptyMsg">No harmonized EV records matched your query.</p>
+    </section>
+
+    <section id="dashboard" class="charts-row" aria-label="Retrieved-data summaries">
+      <div class="chart-box">
+        <div class="chart-title">Top Species in Retrieved Set</div>
+        <div
+          id="speciesLegend"
+          class="custom-legend species-under-title-legend"
+        ></div>
+
+        <div class="chart-canvas-wrap">
+          <canvas id="cSpecies"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-box">
+        <div class="chart-canvas-wrap chart-canvas-wrap--full">
+          <canvas id="cSource"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-box">
+        <div class="chart-canvas-wrap chart-canvas-wrap--full">
+          <canvas id="cScore"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-box">
+        <div class="chart-canvas-wrap chart-canvas-wrap--full">
+          <canvas id="cGroup"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section id="results" class="table-area">
+      <div class="summary-strip">
+        <div class="summary-card">
+          <div class="label">Retrieved records</div>
+          <div class="value" id="sumCount">0</div>
+        </div>
+
+        <div class="summary-card">
+          <div class="label">Mean utility score</div>
+          <div class="value" id="sumUtility">0.000</div>
+        </div>
+
+        <div class="summary-card">
+          <div class="label">Normalization checks flagged</div>
+          <div class="value" id="sumDisc">0</div>
+        </div>
+
+        <div class="summary-card">
+          <div class="label">Unique PMIDs</div>
+          <div class="value" id="sumPMID">0</div>
+        </div>
+      </div>
+
+      <div class="table-header-box">
+        <div class="export-area">
+          <button class="btn-export" type="button" onclick="doExport()">
+            <i class="fas fa-file-csv"></i>
+            Export Data
+          </button>
+        </div>
+
+        <div class="results-heading-area">
+          <h3 class="results-title">
+            <i class="fas fa-database"></i>
+            Retrieved Records
+          </h3>
+
+          <div class="results-note" id="resultsNote">
+            Click a row to inspect provenance and harmonization details.
+            Metadata utility reflects field availability; the query-match score
+            reflects lexical agreement with the current query. Neither score
+            represents biological confidence, evidence strength, or study quality.
+          </div>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table id="mainTable">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Identifier</th>
+              <th>Species</th>
+              <th>Disease / Condition</th>
+              <th>Method Label</th>
+              <th>Source</th>
+              <th
+                title="Query-independent metadata availability score (0–1); not biological confidence"
+              >
+                Metadata Utility
+              </th>
+              <th title="Query-dependent lexical agreement with the current query">
+                Query-match Score
+              </th>
+              <th>Audit Checks</th>
+              <th>Year</th>
+            </tr>
+          </thead>
+
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div
+    id="modal"
+    class="modal"
+    onclick="if (event.target.id === 'modal') closeModal()"
+  >
+    <div
+      class="modal-card"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="m-title"
+    >
+      <button
+        class="close-btn"
+        type="button"
+        onclick="closeModal()"
+        aria-label="Close details modal"
+      >
+        &times;
+      </button>
+
+      <h2 id="m-title" class="modal-title">Record Details</h2>
+
+      <div class="modal-grid">
+        <section class="m-section">
+          <h4>Core Metadata</h4>
+
+          <div class="m-row">
+            <span class="m-lbl">Record UID</span>
+            <span class="m-val" id="m-record"></span>
+          </div>
+
+          <div class="m-row">
+            <span class="m-lbl">Source Row UID</span>
+            <span class="m-val" id="m-source-row"></span>
+          </div>
+
+          <div class="m-row">
+            <span class="m-lbl">Pre-dedup UID</span>
+            <span class="m-val" id="m-pre"></span>
+          </div>
+
+          <div class="m-row">
+            <span class="m-lbl">Source</span>
+            <span class="m-val" id="m-source"></span>
+          </div>
+
+          <div class="m-row">
+            <span class="m-lbl">Year</span>
+            <span class="m-val" id="m-year"></span>
+          </div>
+
+          <div class="m-row">
+            <span class="m-lbl">PMID</span>
+            <span class="m-val" id="m-pmid"></span>
+          </div>
+        </section>
+
+        <section class="m-section">
+          <h4>Molecular Annotation Audit</h4>
+
+          <div class="m-row">
+            <span class="m-lbl">Identifier</span>
+            <span class="m-val" id="m-id"></span>
+          </div>
+
+          <div class="m-row">
+            <span class="m-lbl">Raw Molecule Type</span>
+            <span class="m-val" id="m-type-raw"></span>
+          </div>
+
+          <div class="m-row">
+            <span class="m-lbl">Normalized Type</span>
+            <span class="m-val" id="m-type-norm"></span>
+          </div>
+
+          <div class="m-row">
+            <span class="m-lbl">Grouped Type</span>
+            <span class="m-val" id="m-type-group"></span>
+          </div>
+
+          <div class="m-row">
+            <span class="m-lbl">Exported Type</span>
+            <span class="m-val" id="m-type"></span>
+          </div>
+
+          <div class="m-row">
+            <span class="m-lbl">Consistency Checks</span>
+            <span class="m-val" id="m-disc"></span>
+          </div>
+        </section>
+
+        <section class="m-section">
+          <h4>Context Metadata</h4>
+
+          <div class="m-row">
+            <span class="m-lbl">Species</span>
+            <span class="m-val" id="m-species"></span>
+          </div>
+
+          <div class="m-row">
+            <span class="m-lbl">Sample / Source</span>
+            <span class="m-val" id="m-sample"></span>
+          </div>
+
+          <div class="m-row">
+            <span class="m-lbl">Disease</span>
+            <span class="m-val" id="m-disease"></span>
+          </div>
+
+          <div class="m-row">
+            <span class="m-lbl">Method Label</span>
+            <span class="m-val" id="m-method"></span>
+          </div>
+
+          <div class="m-row">
+            <span class="m-lbl">Vesicle Annotation</span>
+            <span class="m-val" id="m-vesicle"></span>
+          </div>
+
+          <div class="m-row">
+            <span class="m-lbl">Characterization Field</span>
+            <span class="m-val" id="m-char"></span>
+          </div>
+        </section>
+
+        <section class="m-section">
+          <h4>Metadata Utility and Query Matching</h4>
+
+          <div class="m-row">
+            <span class="m-lbl">Metadata Utility Score</span>
+            <span class="m-val" id="m-utility"></span>
+          </div>
+
+          <div class="m-row">
+            <span class="m-lbl">Utility Band</span>
+            <span class="m-val" id="m-band"></span>
+          </div>
+
+          <div class="m-row">
+            <span class="m-lbl">Query-match Score</span>
+            <span class="m-val" id="m-rank"></span>
+          </div>
+
+          <div class="m-row">
+            <span class="m-lbl">EV-METRIC</span>
+            <span class="m-val" id="m-metric"></span>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentData = [];
+    let chartSpecies = null;
+    let chartSource = null;
+    let chartScore = null;
+    let chartGroup = null;
+
+    const KNOWN_SCIENTIFIC = new Set([
+      "Homo sapiens",
+      "Mus musculus",
+      "Rattus norvegicus",
+      "Bos taurus",
+      "Sus scrofa",
+      "Drosophila melanogaster",
+      "Canis lupus familiaris",
+      "Escherichia coli",
+      "Ovis aries",
+      "Equus caballus",
+      "Gallus gallus",
+      "Pseudomonas aeruginosa",
+      "Neisseria meningitidis",
+      "Staphylococcus aureus",
+      "Porphyromonas gingivalis",
+      "Acinetobacter baumannii",
+      "Salmonella enterica",
+      "Helicobacter pylori",
+      "Vibrio cholerae"
+    ]);
+
+    function safeText(value, fallback = "Unknown") {
+      if (value === null || value === undefined) {
+        return fallback;
+      }
+
+      const text = String(value).trim();
+      return text === "" ? fallback : text;
+    }
+
+    function normalizedLabel(value, fallback = "Unknown") {
+      const text = safeText(value, fallback);
+      const folded = text.toLowerCase();
+
+      return folded === "undefined" || folded === "null"
+        ? fallback
+        : text;
+    }
+
+    function escapeHtml(text) {
+      return String(text ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function safeUrl(url) {
+      const text = String(url ?? "").trim();
+
+      if (!text) {
+        return "";
+      }
+
+      try {
+        const parsed = new URL(text, window.location.origin);
+
+        if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+          return "";
+        }
+
+        return parsed.href;
+      } catch (_error) {
+        return "";
+      }
+    }
+
+    function extractPmid(value) {
+      const text = safeText(value, "");
+
+      if (!text || text === "Unknown") {
+        return "";
+      }
+
+      const directMatch = text.match(/^\d+$/);
+
+      if (directMatch) {
+        return directMatch[0];
+      }
+
+      const labelledMatch = text.match(/PMID\s*:?\s*(\d+)/i);
+
+      if (labelledMatch) {
+        return labelledMatch[1];
+      }
+
+      const numericMatch = text.match(/\b\d{4,12}\b/);
+      return numericMatch ? numericMatch[0] : "";
+    }
+
+    function buildPubMedUrl(record) {
+      const backendUrl = safeUrl(record?.pmid_url);
+
+      if (backendUrl) {
+        return backendUrl;
+      }
+
+      const pmid = extractPmid(record?.pmid);
+
+      return pmid
+        ? `https://pubmed.ncbi.nlm.nih.gov/${encodeURIComponent(pmid)}/`
+        : "";
+    }
+
+    function speciesToHtmlFallback(value) {
+      const text = safeText(value);
+
+      if (text === "Unknown") {
+        return "Unknown";
+      }
+
+      return text
+        .split("|")
+        .map(part => {
+          const item = part.trim();
+
+          return KNOWN_SCIENTIFIC.has(item)
+            ? `<i>${escapeHtml(item)}</i>`
+            : escapeHtml(item);
+        })
+        .join(" | ");
+    }
+
+    function renderSpeciesHtml(record) {
+      if (
+        typeof record?.species_html === "string" &&
+        record.species_html.trim() !== ""
+      ) {
+        return record.species_html;
+      }
+
+      return speciesToHtmlFallback(record?.species);
+    }
+
+    function speciesLabelToLegendHtml(label) {
+      return String(label)
+        .split("|")
+        .map(part => {
+          const item = part.trim();
+
+          return KNOWN_SCIENTIFIC.has(item)
+            ? `<i>${escapeHtml(item)}</i>`
+            : escapeHtml(item);
+        })
+        .join(" | ");
+    }
+
+    function renderCustomSpeciesLegend(containerId, labels, values, colors) {
+      const container = document.getElementById(containerId);
+
+      if (!container) {
+        return;
+      }
+
+      container.innerHTML = labels
+        .map(
+          (label, index) => `
+            <span class="legend-item">
+              <span
+                class="legend-swatch"
+                style="background:${escapeHtml(colors[index])}"
+              ></span>
+              ${speciesLabelToLegendHtml(label)}
+              (${Number(values[index]).toLocaleString()})
+            </span>
+          `
+        )
+        .join("");
+    }
+
+    function clearDynamicOptions(selectElement) {
+      while (selectElement.options.length > 1) {
+        selectElement.remove(1);
+      }
+    }
+
+    function configureFilter(
+      selectId,
+      noteId,
+      values,
+      defaultLabel,
+      singleLabel,
+      emptyLabel
+    ) {
+      const selectElement = document.getElementById(selectId);
+      const noteElement = document.getElementById(noteId);
+      const items = Array.isArray(values) ? values : [];
+
+      clearDynamicOptions(selectElement);
+
+      if (items.length > 1) {
+        selectElement.disabled = false;
+        selectElement.options[0].text = defaultLabel;
+        selectElement.value = "";
+        noteElement.textContent = "";
+
+        items.forEach(value => {
+          const option = document.createElement("option");
+          option.value = value;
+          option.textContent = value;
+          selectElement.appendChild(option);
+        });
+
+        return;
+      }
+
+      if (items.length === 1) {
+        selectElement.disabled = true;
+        selectElement.value = "";
+        selectElement.options[0].text = `${singleLabel}: ${items[0]}`;
+        noteElement.textContent = "";
+        return;
+      }
+
+      selectElement.disabled = true;
+      selectElement.value = "";
+      selectElement.options[0].text = emptyLabel;
+      noteElement.textContent = "";
+    }
+
+    async function loadFilters() {
+      try {
+        const response = await fetch("/filters", {
+          headers: {
+            Accept: "application/json"
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Filter request failed with status ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        configureFilter(
+          "sourceFilter",
+          "sourceFilterNote",
+          data.sources || [],
+          "All sources",
+          "Only one source available",
+          "No source options available"
+        );
+
+        configureFilter(
+          "speciesFilter",
+          "speciesFilterNote",
+          data.species || [],
+          "All species",
+          "Only one species available",
+          "No species options available"
+        );
+
+        configureFilter(
+          "groupFilter",
+          "groupFilterNote",
+          data.molecule_groups || [],
+          "All molecule groups",
+          "Only one group available",
+          "No molecule-group options available"
+        );
+      } catch (error) {
+        console.error("Failed to load filters:", error);
+      }
+    }
+
+    function hideStates() {
+      document.getElementById("dashboard").style.display = "none";
+      document.getElementById("results").style.display = "none";
+      document.getElementById("emptyState").style.display = "none";
+      document.getElementById("loadingState").style.display = "none";
+    }
+
+    function setSearchingState(isSearching) {
+      const button = document.getElementById("searchBtn");
+
+      button.disabled = isSearching;
+      button.innerHTML = isSearching
+        ? '<i class="fas fa-spinner fa-spin"></i> Searching'
+        : '<i class="fas fa-search"></i> Search';
+    }
+
+    async function runSearch() {
+      const query = document.getElementById("q").value.trim();
+      const sourceElement = document.getElementById("sourceFilter");
+      const speciesElement = document.getElementById("speciesFilter");
+      const groupElement = document.getElementById("groupFilter");
+
+      const source = sourceElement.disabled ? "" : sourceElement.value;
+      const species = speciesElement.disabled ? "" : speciesElement.value;
+      const group = groupElement.disabled ? "" : groupElement.value;
+
+      if (!query && !source && !species && !group) {
+        return;
+      }
+
+      hideStates();
+      document.getElementById("loadingState").style.display = "block";
+      setSearchingState(true);
+
+      const parameters = new URLSearchParams({
+        q: query,
+        source,
+        species,
+        molecule_group: group,
+        limit: "500"
+      });
+
+      try {
+        const response = await fetch(`/search?${parameters.toString()}`, {
+          headers: {
+            Accept: "application/json"
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Search request failed with status ${response.status}`);
+        }
+
+        const data = await response.json();
+        currentData = Array.isArray(data) ? data : [];
+
+        hideStates();
+
+        if (currentData.length > 0) {
+          renderSummary(currentData);
+          renderCharts(currentData);
+          renderTable(currentData);
+
+          document.getElementById("results").style.display = "block";
+          document.getElementById("dashboard").style.display = "grid";
+        } else {
+          document.getElementById("emptyState").style.display = "block";
+          document.getElementById("emptyMsg").textContent =
+            "No harmonized EV records matched the selected query/filter combination.";
+
+          destroyAllCharts();
+        }
+      } catch (error) {
+        console.error("Search failed:", error);
+
+        currentData = [];
+        hideStates();
+
+        document.getElementById("emptyState").style.display = "block";
+        document.getElementById("emptyMsg").textContent =
+          "An internal server error occurred while searching. Please try again.";
+
+        destroyAllCharts();
+      } finally {
+        setSearchingState(false);
+      }
+    }
+
+    function renderSummary(data) {
+      const meanUtility =
+        data.reduce(
+          (total, record) =>
+            total + (Number(record.metadata_utility_score) || 0),
+          0
+        ) / data.length;
+
+      const flagged = data.filter(
+        record =>
+          Number(record.raw_norm_discrepant) === 1 ||
+          Number(record.norm_compat_discrepant) === 1
+      ).length;
+
+      const pmids = new Set(
+        data
+          .map(record => extractPmid(record.pmid))
+          .filter(Boolean)
+      );
+
+      document.getElementById("sumCount").textContent =
+        data.length.toLocaleString();
+
+      document.getElementById("sumUtility").textContent =
+        meanUtility.toFixed(3);
+
+      document.getElementById("sumDisc").textContent =
+        flagged.toLocaleString();
+
+      document.getElementById("sumPMID").textContent =
+        pmids.size.toLocaleString();
+    }
+
+    function sourceBadgeHtml(source) {
+      const label = safeText(source);
+
+      if (label === "EV-TRACK") {
+        return `<span class="badge badge-green">${escapeHtml(label)}</span>`;
+      }
+
+      if (label === "Vesiclepedia" || label === "ExoCarta") {
+        return `<span class="badge badge-blue">${escapeHtml(label)}</span>`;
+      }
+
+      return `<span class="badge badge-gray">${escapeHtml(label)}</span>`;
+    }
+
+    function buildAuditFlags(record) {
+      const flags = [];
+
+      if (Number(record.raw_norm_discrepant) === 1) {
+        flags.push('<span class="badge badge-red">raw→norm</span>');
+      }
+
+      if (Number(record.norm_compat_discrepant) === 1) {
+        flags.push('<span class="badge badge-gold">norm→compat</span>');
+      }
+
+      if (flags.length === 0) {
+        flags.push('<span class="badge badge-gray">consistent</span>');
+      }
+
+      return flags.join(" ");
+    }
+
+    function scoreClassName(score) {
+      const numericScore = Number(score || 0);
+
+      if (numericScore >= 0.75) {
+        return "score-high";
+      }
+
+      if (numericScore >= 0.5) {
+        return "score-mid";
+      }
+
+      return "score-low";
+    }
+
+    function renderTable(data) {
+      const tableBody = document.querySelector("#mainTable tbody");
+      tableBody.innerHTML = "";
+
+      data.forEach(record => {
+        const row = document.createElement("tr");
+
+        row.className = "result-row";
+        row.tabIndex = 0;
+        row.setAttribute("role", "button");
+        row.setAttribute(
+          "aria-label",
+          `Open details for ${safeText(record.name)}`
+        );
+
+        row.addEventListener("click", () => showModal(record));
+
+        row.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            showModal(record);
+          }
+        });
+
+        row.innerHTML = `
+          <td>
+            <span class="badge badge-gray">
+              ${escapeHtml(safeText(record.type))}
+            </span>
+          </td>
+
+          <td>${escapeHtml(safeText(record.name))}</td>
+
+          <td class="species-cell">
+            ${renderSpeciesHtml(record)}
+          </td>
+
+          <td>${escapeHtml(safeText(record.disease))}</td>
+
+          <td>${escapeHtml(safeText(record.method))}</td>
+
+          <td>${sourceBadgeHtml(record.source)}</td>
+
+          <td class="${scoreClassName(record.metadata_utility_score)}">
+            ${Number(record.metadata_utility_score || 0).toFixed(3)}
+            <br>
+            <span style="font-size:0.72rem;">
+              ${escapeHtml(safeText(record.metadata_score_band))}
+            </span>
+          </td>
+
+          <td>
+            ${Number(record.retrieval_rank_score || 0).toFixed(3)}
+          </td>
+
+          <td>${buildAuditFlags(record)}</td>
+
+          <td>${escapeHtml(safeText(record.year))}</td>
+        `;
+
+        tableBody.appendChild(row);
+      });
+    }
+
+    function openModal() {
+      document.getElementById("modal").classList.add("show");
+      document.body.classList.add("modal-open");
+      document.querySelector(".close-btn").focus();
+    }
+
+    function closeModal() {
+      document.getElementById("modal").classList.remove("show");
+      document.body.classList.remove("modal-open");
+    }
+
+    function showModal(record) {
+      document.getElementById("m-title").textContent =
+        `${safeText(record.name)} (${safeText(record.type)})`;
+
+      document.getElementById("m-record").textContent =
+        safeText(record.record_uid);
+
+      document.getElementById("m-source-row").textContent =
+        safeText(record.source_row_uid);
+
+      document.getElementById("m-pre").textContent =
+        safeText(record.pre_dedup_uid);
+
+      document.getElementById("m-source").textContent =
+        safeText(record.source);
+
+      document.getElementById("m-year").textContent =
+        safeText(record.year);
+
+      document.getElementById("m-id").textContent =
+        safeText(record.name);
+
+      document.getElementById("m-type-raw").textContent =
+        safeText(record.type_raw);
+
+      document.getElementById("m-type-norm").textContent =
+        safeText(record.type_norm);
+
+      document.getElementById("m-type-group").textContent =
+        safeText(record.type_group);
+
+      document.getElementById("m-type").textContent =
+        safeText(record.type);
+
+      document.getElementById("m-species").innerHTML =
+        renderSpeciesHtml(record);
+
+      document.getElementById("m-sample").textContent =
+        safeText(record.sample);
+
+      document.getElementById("m-disease").textContent =
+        safeText(record.disease);
+
+      document.getElementById("m-method").textContent =
+        safeText(record.method);
+
+      document.getElementById("m-vesicle").textContent =
+        safeText(record.vesicle);
+
+      document.getElementById("m-char").textContent =
+        safeText(record.characterization);
+
+      document.getElementById("m-utility").textContent =
+        Number(record.metadata_utility_score || 0).toFixed(3);
+
+      document.getElementById("m-band").textContent =
+        safeText(record.metadata_score_band);
+
+      document.getElementById("m-rank").textContent =
+        Number(record.retrieval_rank_score || 0).toFixed(3);
+
+      document.getElementById("m-metric").textContent =
+        safeText(record.ev_metric);
+
+      const discrepancyBadges = [];
+
+      if (Number(record.raw_norm_discrepant) === 1) {
+        discrepancyBadges.push(
+          '<span class="badge badge-red">raw→norm mismatch</span>'
+        );
+      }
+
+      if (Number(record.norm_compat_discrepant) === 1) {
+        discrepancyBadges.push(
+          '<span class="badge badge-gold">norm→compat mismatch</span>'
+        );
+      }
+
+      if (discrepancyBadges.length === 0) {
+        discrepancyBadges.push(
+          '<span class="badge badge-gray">consistent</span>'
+        );
+      }
+
+      document.getElementById("m-disc").innerHTML =
+        `<span class="inline-badges">${discrepancyBadges.join(" ")}</span>`;
+
+      const pmid = extractPmid(record.pmid);
+      const pubmedUrl = buildPubMedUrl(record);
+      const pmidElement = document.getElementById("m-pmid");
+
+      if (pubmedUrl) {
+        pmidElement.innerHTML = `
+          <a
+            class="pubmed-link"
+            href="${escapeHtml(pubmedUrl)}"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Open this record directly in PubMed"
+          >
+            <i class="fas fa-arrow-up-right-from-square"></i>
+            Open in PubMed${pmid ? ` · PMID ${escapeHtml(pmid)}` : ""}
+          </a>
+        `;
+      } else {
+        pmidElement.innerHTML =
+          '<span class="pubmed-unavailable">No PubMed record available</span>';
+      }
+
+      openModal();
+    }
+
+    function destroyAllCharts() {
+      if (chartSpecies) {
+        chartSpecies.destroy();
+        chartSpecies = null;
+      }
+
+      if (chartSource) {
+        chartSource.destroy();
+        chartSource = null;
+      }
+
+      if (chartScore) {
+        chartScore.destroy();
+        chartScore = null;
+      }
+
+      if (chartGroup) {
+        chartGroup.destroy();
+        chartGroup = null;
+      }
+
+      const legendElement = document.getElementById("speciesLegend");
+
+      if (legendElement) {
+        legendElement.innerHTML = "";
+      }
+    }
+
+    function makeChart(
+      canvasId,
+      type,
+      dataMap,
+      title,
+      topN,
+      colors,
+      customLegendId = null
+    ) {
+      let entries = Object.entries(dataMap)
+        .sort((left, right) => right[1] - left[1]);
+
+      if (topN) {
+        entries = entries.slice(0, topN);
+      }
+
+      const labels = entries.map(entry => entry[0]);
+      const values = entries.map(entry => entry[1]);
+
+      const chartColors =
+        colors.length === 1
+          ? Array(values.length).fill(colors[0])
+          : labels.map(
+              (_label, index) => colors[index % colors.length]
+            );
+
+      const context = document.getElementById(canvasId);
+
+      const chart = new Chart(context, {
+        type,
+
+        data: {
+          labels,
+
+          datasets: [
+            {
+              data: values,
+              backgroundColor: chartColors,
+              borderColor: "#ffffff",
+              borderWidth: type === "bar" ? 0 : 1
+            }
+          ]
+        },
+
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          resizeDelay: 200,
+          animation: false,
+
+          layout: {
+            padding: {
+              top: 4,
+              right: 6,
+              bottom: 4,
+              left: 6
+            }
+          },
+
+          plugins: {
+            legend: {
+              display: !customLegendId,
+              position: "top",
+              labels: {
+                boxWidth: 12,
+                boxHeight: 12,
+                font: {
+                  size: 10
+                }
+              }
+            },
+
+            title: {
+              display: Boolean(title),
+              text: title || "",
+              color: "#666666",
+              padding: {
+                top: 2,
+                bottom: 8
+              },
+              font: {
+                size: 13,
+                weight: "600"
+              }
+            },
+
+            tooltip: {
+              callbacks: {
+                label(context) {
+                  const label = context.label
+                    ? `${context.label}: `
+                    : "";
+
+                  return `${label}${Number(context.raw).toLocaleString()}`;
+                }
+              }
+            }
+          },
+
+          scales:
+            type === "bar"
+              ? {
+                  y: {
+                    beginAtZero: true,
+                    ticks: {
+                      precision: 0
+                    },
+                    grid: {
+                      color: "rgba(0,0,0,0.06)"
+                    }
+                  },
+
+                  x: {
+                    grid: {
+                      display: false
+                    },
+                    ticks: {
+                      autoSkip: false,
+                      maxRotation: 35,
+                      minRotation: 0,
+                      font: {
+                        size: 10
+                      }
+                    }
+                  }
+                }
+              : {}
+        }
+      });
+
+      if (customLegendId) {
+        renderCustomSpeciesLegend(
+          customLegendId,
+          labels,
+          values,
+          chartColors
+        );
+      }
+
+      return chart;
+    }
+
+    function renderCharts(data) {
+      destroyAllCharts();
+
+      const speciesMap = {};
+      const sourceMap = {};
+      const scoreBandMap = {};
+      const groupMap = {};
+
+      data.forEach(record => {
+        const species = normalizedLabel(record.species);
+        const source = normalizedLabel(record.source);
+        const band = normalizedLabel(
+          record.metadata_score_band,
+          "Unclassified"
+        );
+        const group = normalizedLabel(
+          record.type_group,
+          "Unknown/Other"
+        );
+
+        speciesMap[species] = (speciesMap[species] || 0) + 1;
+        sourceMap[source] = (sourceMap[source] || 0) + 1;
+        scoreBandMap[band] = (scoreBandMap[band] || 0) + 1;
+        groupMap[group] = (groupMap[group] || 0) + 1;
+      });
+
+      chartSpecies = makeChart(
+        "cSpecies",
+        "doughnut",
+        speciesMap,
+        null,
+        5,
+        ["#1f4e79", "#228b22", "#daa520", "#95a5a6", "#dfe6e9"],
+        "speciesLegend"
+      );
+
+      chartSource = makeChart(
+        "cSource",
+        "pie",
+        sourceMap,
+        "Source Distribution",
+        null,
+        ["#1f4e79", "#228b22", "#daa520", "#95a5a6"]
+      );
+
+      chartScore = makeChart(
+        "cScore",
+        "bar",
+        scoreBandMap,
+        "Metadata Score Bands",
+        null,
+        ["#228b22", "#daa520", "#e67e22", "#c0392b"]
+      );
+
+      chartGroup = makeChart(
+        "cGroup",
+        "bar",
+        groupMap,
+        "Molecule Groups in Retrieved Set",
+        6,
+        ["#1f4e79"]
+      );
+    }
+
+    function csvCell(value) {
+      const text =
+        value === null || value === undefined
+          ? ""
+          : String(value);
+
+      return `"${text.replace(/"/g, '""')}"`;
+    }
+
+    function exportTimestamp() {
+      const now = new Date();
+
+      const pad = value => String(value).padStart(2, "0");
+
+      return [
+        now.getFullYear(),
+        pad(now.getMonth() + 1),
+        pad(now.getDate()),
+        "_",
+        pad(now.getHours()),
+        pad(now.getMinutes()),
+        pad(now.getSeconds())
+      ].join("");
+    }
+
+    function doExport() {
+      if (!currentData.length) {
+        alert("No data to export.");
+        return;
+      }
+
+      const header = [
+        "record_uid",
+        "source_row_uid",
+        "pre_dedup_uid",
+        "source",
+        "source_priority",
+        "working_id",
+        "molecule_type_raw",
+        "molecule_type_norm",
+        "molecule_type_group",
+        "molecule_type",
+        "species",
+        "sample_name",
+        "disease",
+        "method",
+        "vesicle",
+        "characterization",
+        "ev_metric",
+        "year",
+        "pmid",
+        "pubmed_url",
+        "metadata_utility_score",
+        "metadata_score_band",
+        "retrieval_rank_score",
+        "raw_norm_discrepant",
+        "norm_compat_discrepant"
+      ];
+
+      const rows = currentData.map(record => [
+        safeText(record.record_uid),
+        safeText(record.source_row_uid),
+        safeText(record.pre_dedup_uid),
+        safeText(record.source),
+        Number(record.source_priority || 0),
+        safeText(record.name),
+        safeText(record.type_raw),
+        safeText(record.type_norm),
+        safeText(record.type_group),
+        safeText(record.type),
+        safeText(record.species),
+        safeText(record.sample),
+        safeText(record.disease),
+        safeText(record.method),
+        safeText(record.vesicle),
+        safeText(record.characterization),
+        safeText(record.ev_metric),
+        safeText(record.year),
+        extractPmid(record.pmid) || safeText(record.pmid),
+        buildPubMedUrl(record),
+        Number(record.metadata_utility_score || 0).toFixed(3),
+        safeText(record.metadata_score_band),
+        Number(record.retrieval_rank_score || 0).toFixed(3),
+        Number(record.raw_norm_discrepant || 0),
+        Number(record.norm_compat_discrepant || 0)
+      ]);
+
+      const csv = [
+        header.map(csvCell).join(","),
+        ...rows.map(row => row.map(csvCell).join(","))
+      ].join("\r\n");
+
+      const blob = new Blob(
+        ["\uFEFF", csv],
+        {
+          type: "text/csv;charset=utf-8;"
+        }
+      );
+
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+
+      anchor.href = url;
+      anchor.download =
+        `EVisionary_Query_Export_${exportTimestamp()}.csv`;
+
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+
+      window.setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 1000);
+    }
+
+    document
+      .getElementById("q")
+      .addEventListener("keydown", event => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          runSearch();
+        }
+      });
+
+    document.addEventListener("keydown", event => {
+      if (
+        event.key === "Escape" &&
+        document.getElementById("modal").classList.contains("show")
+      ) {
+        closeModal();
+      }
+    });
+
+    loadFilters();
+  </script>
+</body>
+</html>
